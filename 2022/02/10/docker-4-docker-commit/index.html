@@ -2,7 +2,7 @@
 <html class="has-navbar-fixed-top">
 <head>
     <meta charset="utf-8">
-<title>GC&#39;s Garbage Collector</title>
+<title>docker commit - GC&#39;s Garbage Collector</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
@@ -98,11 +98,10 @@
 
     <section class="section">
     <div class="container">
-    
-        <article class="article content gallery" itemscope itemprop="blogPost">
+    <article class="article content gallery" itemscope itemprop="blogPost">
     <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
         
-            <a href="/2022/02/10/docker-4-docker-commit/" itemprop="url">docker commit</a>
+            docker commit
         
     </h1>
     <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
@@ -122,132 +121,89 @@
     </div>
     <div class="article-entry is-size-6-mobile" itemprop="articleBody">
     
-        <html><head></head><body><p>除了前篇稍微提到的 Dockerfile，<br>還有一種方式可以建立 image<br>如果只是想快速建立一個 snapshot 性質的 image，<br>又不想撰寫完整的 Dockerfile，可以參考這篇的做法~</p></body></html>
-        <p class="article-more-link">
-            <a href="/2022/02/10/docker-4-docker-commit/#more">Read More</a>
-        </p>
+        <html><head></head><body><p>除了前篇稍微提到的 Dockerfile，<br>還有一種方式可以建立 image<br>如果只是想快速建立一個 snapshot 性質的 image，<br>又不想撰寫完整的 Dockerfile，可以參考這篇的做法~</p>
+<span id="more"></span>
+
+<h3 id="說明"><a href="#說明" class="headerlink" title="說明"></a>說明</h3><ul>
+<li>再幫各位複習 一下，Image 其實是有很多層 <strong>Layer</strong> 的，而透過 docker run 建立了 <strong>container</strong> 後，會多一層<strong>可讀寫</strong>的 layer。</li>
+<li>這個時候如果你針對那個可讀寫的 layer 增加了或減少了內容，都會被記錄在 metadata 中</li>
+<li>而如果你想把這些異動的<strong>結果</strong>再變成 image 交給別人的話，這時候可以透過一個叫作 <strong>docker commit</strong> 的指令將<strong>異動的內容</strong>變成一個新的 Docker</li>
+</ul>
+<h3 id="實作"><a href="#實作" class="headerlink" title="實作"></a>實作</h3><ul>
+<li>假設今天我們透過 ubuntu 的 image 建立了一個 container，指令如下:  <figure class="highlight shell hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -it --name ubuntu ubuntu /bin/bash</span><br></pre></td></tr></tbody></table></figure>
+  <img src="https://i.imgur.com/wWMffS9.png"></li>
+<li>接著我們在 home 底下建立一個目錄與文字檔  <figure class="highlight shell hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cd home</span><br><span class="line">mkdir test</span><br><span class="line">echo "Hello World" &gt;&gt; hello.txt</span><br><span class="line">ls -al</span><br></pre></td></tr></tbody></table></figure>
+  <img src="https://i.imgur.com/aumy2uS.png"></li>
+<li>此時如果直接把 container 移除，<strong>再</strong>透過 <strong>ubuntu</strong> 的 image 重新建立 container，剛剛新建的目錄與文字檔都不會存在，而這是因為:<ul>
+<li>ubuntu 官方的 image 自然不會有你建立的資訊</li>
+<li>可讀寫的那一個 layer 尚未被保存</li>
+</ul>
+</li>
+<li>透過 docker commit 解決的方式如下:  <figure class="highlight shell hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-meta"># </span><span class="hljs-language-bash">先跳出 container 的 bash</span></span><br><span class="line">exit</span><br><span class="line"><span class="hljs-meta"></span></span><br><span class="line"><span class="hljs-meta"># </span><span class="hljs-language-bash">docker commit</span></span><br><span class="line">docker commit ubuntu foobar/ubuntu</span><br><span class="line"><span class="hljs-meta"></span></span><br><span class="line"><span class="hljs-meta"># </span><span class="hljs-language-bash">檢查本機是否有 image 存在</span></span><br><span class="line">docker images | grep foobar/ubuntu</span><br><span class="line"><span class="hljs-meta"></span></span><br><span class="line"><span class="hljs-meta"># </span><span class="hljs-language-bash">移除原本的 container</span></span><br><span class="line">docker rm -f ubuntu</span><br><span class="line"><span class="hljs-meta"></span></span><br><span class="line"><span class="hljs-meta"># </span><span class="hljs-language-bash">透過新的 image 建立 container</span></span><br><span class="line">docker run -it --name ubuntu foobar/ubuntu /bin/bash</span><br><span class="line"><span class="hljs-meta"></span></span><br><span class="line"><span class="hljs-meta"># </span><span class="hljs-language-bash">看一下先前建立的資料是否還在</span></span><br><span class="line">ls -al home</span><br></pre></td></tr></tbody></table></figure>
+  <img src="https://i.imgur.com/vNtDVBg.png"></li>
+<li>此時的 container 概念上可以分成三塊<ul>
+<li>原本官方 ubuntu 的 image layer(s)</li>
+<li>剛透過 docker commit 建立的 layer</li>
+<li>啟動 container 時新加上的可讀寫 layer</li>
+</ul>
+</li>
+</ul>
+<h3 id="結論"><a href="#結論" class="headerlink" title="結論:"></a>結論:</h3><ul>
+<li>針對 container 的一次性異動可以透過這種方式處理</li>
+<li>重覆性的操作則建議用 Dockerfile，下篇會詳述</li>
+</ul>
+</body></html>
     
     </div>
     
+    <div class="columns is-variable is-1 is-multiline is-mobile">
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/Docker/">#Docker</a></span>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop is-hidden-mobile article-nav-prev">
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2022/01/30/docker-3-image/">image 是什麼</a>
+            
+        </span>
+    </div>
     
 </article>
 
 
 
 
+<div class="comments">
+    <h3 class="title is-4">Comments</h3>
     
-        <article class="article content gallery" itemscope itemprop="blogPost">
-    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+<script>
+    var disqus_config = function () {
+        this.page.url = 'http://example.com/2022/02/10/docker-4-docker-commit/';
+        this.page.identifier = '2022/02/10/docker-4-docker-commit/';
         
-            <a href="/2022/01/30/docker-3-image/" itemprop="url">image 是什麼</a>
+        this.language = 'en';
         
-    </h1>
-    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
-        <span class="column is-narrow">
-            
-                <time datetime="2022-01-30T08:37:00.000Z" itemprop="datePublished">Jan 30 2022</time>
-            
-        </span>
-        
-        
-        <span class="column is-narrow">
-            
-            
-            4 minutes read (About 604 words)
-        </span>
-        
-    </div>
-    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
-    
-        <p>什麼是 <strong>Docker Image</strong>？<br>這東西可是 Docker 裡面相當重要的一個要素，<br>沒有它就無法建立 Container，至於為什麼呢？</p>
-        <p class="article-more-link">
-            <a href="/2022/01/30/docker-3-image/#more">Read More</a>
-        </p>
-    
-    </div>
-    
-    
-</article>
+    };
+    (function() {
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'gc-garbage-collector' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
 
+<div id="disqus_thread">
+    
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</div>
 
-
-
-    
-        <article class="article content gallery" itemscope itemprop="blogPost">
-    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
-        
-            <a href="/2022/01/30/docker-2-%E4%BB%80%E9%BA%BC%E6%98%AFdocker/" itemprop="url">Docker 是什麼</a>
-        
-    </h1>
-    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
-        <span class="column is-narrow">
-            
-                <time datetime="2022-01-30T08:20:00.000Z" itemprop="datePublished">Jan 30 2022</time>
-            
-        </span>
-        
-        
-        <span class="column is-narrow">
-            
-            
-            3 minutes read (About 418 words)
-        </span>
-        
-    </div>
-    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
-    
-        <p>如果有天長官問說「<strong>Docker 是什麼？</strong>」<br>不知道在座的您會如何回答呢？</p>
-        <p class="article-more-link">
-            <a href="/2022/01/30/docker-2-%E4%BB%80%E9%BA%BC%E6%98%AFdocker/#more">Read More</a>
-        </p>
-    
-    </div>
-    
-    
-</article>
-
-
-
-
-    
-        <article class="article content gallery" itemscope itemprop="blogPost">
-    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
-        
-            <a href="/2022/01/30/docker-1-%E5%91%BD%E5%90%8D%E7%9A%84%E7%94%B1%E4%BE%86/" itemprop="url">Docker 命名由來</a>
-        
-    </h1>
-    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
-        <span class="column is-narrow">
-            
-                <time datetime="2022-01-30T08:04:00.000Z" itemprop="datePublished">Jan 30 2022</time>
-            
-        </span>
-        
-        
-        <span class="column is-narrow">
-            
-            
-            3 minutes read (About 460 words)
-        </span>
-        
-    </div>
-    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
-    
-        <p>平常大家都聽到或稱呼 Docker 習慣了，但您是否知道它的命名由來呢？<br>我相信每一個產品的命名都有它一定的淵源，無論其命名是市場導向，或別有用途，<br>了解它的命名，或許對整體概念能有多一些認識。</p>
-        <p class="article-more-link">
-            <a href="/2022/01/30/docker-1-%E5%91%BD%E5%90%8D%E7%9A%84%E7%94%B1%E4%BE%86/#more">Read More</a>
-        </p>
-    
-    </div>
-    
-    
-</article>
-
-
-
-
-    
-    
     </div>
 </section>
     <footer class="footer">
