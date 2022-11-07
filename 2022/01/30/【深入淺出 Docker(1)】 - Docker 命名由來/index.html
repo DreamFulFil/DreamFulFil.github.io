@@ -2,7 +2,7 @@
 <html class="has-navbar-fixed-top">
 <head>
     <meta charset="utf-8">
-<title>【深入淺出 Docker(2)】- Docker 是什麼 - GC&#39;s Garbage Collector</title>
+<title>【深入淺出 Docker(1)】 - Docker 命名由來 - GC&#39;s Garbage Collector</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
@@ -106,13 +106,13 @@
     <article class="article content gallery" itemscope itemprop="blogPost">
     <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
         
-            【深入淺出 Docker(2)】- Docker 是什麼
+            【深入淺出 Docker(1)】 - Docker 命名由來
         
     </h1>
     <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
         <span class="column is-narrow">
             
-                <time datetime="2022-01-30T08:20:00.000Z" itemprop="datePublished">Jan 30 2022</time>
+                <time datetime="2022-01-30T08:04:00.000Z" itemprop="datePublished">Jan 30 2022</time>
             
         </span>
         
@@ -120,37 +120,29 @@
         <span class="column is-narrow">
             
             
-            3 minutes read (About 418 words)
+            3 minutes read (About 460 words)
         </span>
         
     </div>
     <div class="article-entry is-size-6-mobile" itemprop="articleBody">
     
-        <html><head></head><body><p>如果有天長官問說「<strong>Docker 是什麼？</strong>」<br>不知道在座的您會如何回答呢？</p>
+        <html><head></head><body><p>平常大家都聽到或稱呼 Docker 習慣了，但您是否知道它的命名由來呢？<br>我相信每一個產品的命名都有它一定的淵源，無論其命名是市場導向，或別有用途，<br>了解它的命名，或許對整體概念能有多一些認識。</p>
 <span id="more"></span>
 
-<h3 id="What-is-it？"><a href="#What-is-it？" class="headerlink" title="What is it？"></a>What is it？</h3><ul>
-<li>Docker 是基於 <strong>LXC</strong>(Linux Container) 的「其中一種」容器建立技術。</li>
-<li>建立容器<strong>只是其中一種技術</strong>，並不代表 Docker 就是容器， 容器還有<strong>其他公司</strong>有做<br>(舉例: rkt, mesos, rancher… 等等)</li>
+<h3 id="歷史"><a href="#歷史" class="headerlink" title="歷史"></a>歷史</h3><ul>
+<li>在古早時代，<strong>每一種貨物都有其不同的打包方式</strong>。<br>亦或是針對它內容物的性質不同，需要特別的環境安置之…</li>
+<li>然而在碼頭不可能<strong>針對每一項貨物都出專用的工具</strong>，<br>或是配置特別的環境處理某些類型的貨物，於是…<br>有人就想出了<strong>貨櫃</strong>這個打包方式！</li>
+<li>只要你的貨<strong>進了貨櫃</strong>，那在碼頭的工作人員就不必擔心<strong>如何將貨物放置至船上</strong>，只要考慮每一個貨櫃的配重即可。</li>
+<li>即使是那些需要特殊環境的貨物，只要放進特殊環境的貨櫃即可，再也不用在船上特別提供環境~</li>
 </ul>
-<h3 id="特性"><a href="#特性" class="headerlink" title="特性"></a>特性</h3><ul>
-<li>它與 Host OS <strong>共享</strong>資源  <figure class="highlight plaintext hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Host OS 指的是 Docker 被安裝的作業系統</span><br><span class="line">有可能是實體機器本身的作業系統，也可能是 VM 上的作業系統</span><br></pre></td></tr></tbody></table></figure></li>
-<li>它相對<strong>具可攜性</strong>，只要機器有裝 Docker Engine，不管在哪運行原則上不會有差異</li>
-<li>它相對<strong>輕量</strong>，一個指令就可以建立，不用像 VM 還要安裝整套的作業系統</li>
-<li>它相對<strong>容易建立</strong>，不用再安裝這個 Framework 那個 掛那個 dll，設定環境變數…</li>
+<h3 id="比擬"><a href="#比擬" class="headerlink" title="比擬"></a>比擬</h3><ul>
+<li><strong>Docker</strong> 與 <strong>Container</strong> 這個命名的由來，是根據「<strong>貨物</strong>」透過「<strong>貨櫃</strong>」的統一置放方式而來</li>
+<li><strong>Container</strong> 本身除了在 <strong>Linux OS</strong> 是一個 Process 之外，也暗喻我們所開發的 <strong>Application</strong> 是以一個「打包好的形式」被部署在各個環境中。</li>
+<li>也正因如此， <strong>Docker</strong> 的 <strong>Logo</strong> 是隻<strong>鯨魚</strong>上面載著許多貨櫃，就好比是應用程式被以統一包裝方式(container) 被部署。</li>
 </ul>
-<h3 id="組成"><a href="#組成" class="headerlink" title="組成"></a>組成</h3><ul>
-<li><strong>Docker Engine</strong> =&gt; 又分作實際做事的 <strong>Docker Deamon</strong> 與跟 Daemon 互動的 <strong>Docker Client</strong></li>
-<li><strong>Docker hub</strong> =&gt; 負責存放 Docker Image 的一個 Registry</li>
-</ul>
-<h3 id="Linux-vs-Others"><a href="#Linux-vs-Others" class="headerlink" title="Linux vs. Others"></a>Linux vs. Others</h3><ul>
-<li>一般在 <strong>Linux</strong> 的任何一個 Distribution 上安裝的都是<strong>原生的</strong> Docker</li>
-<li><strong>Mac / Windows (Pro)/ Win 10 + WSL2 上安裝的</strong>，中間其實都<strong>偷偷墊了一層</strong> VM，也因為如此，測試機才會是直接裝 Docker，而本機開發也可以用安裝包處理</li>
-<li>不論在哪種 OS 下，面對 Docker Engine 的操作模式都會是一樣的！</li>
-</ul>
-<h3 id="總結"><a href="#總結" class="headerlink" title="總結"></a>總結</h3><ul>
-<li>容器就是<strong>應用程式與其所有相依套件於一體的 Linux Process</strong></li>
-<li>前面提到的 Image 是什麼？ 詳細的以後再寫一篇來談</li>
+<h3 id="小結"><a href="#小結" class="headerlink" title="小結"></a>小結</h3><ul>
+<li>不知看了這篇，是否對 <strong>docker</strong> 本身又更興趣多了點？</li>
+<li>其實容器不只 docker 一種，詳細的以後再寫一篇來談</li>
 </ul>
 </body></html>
     
@@ -166,12 +158,10 @@
     <div class="columns is-mobile is-multiline article-nav">
         <span class="column is-12-mobile is-half-desktop  article-nav-prev">
             
-            <a href="/2022/01/30/docker-3-image/">【深入淺出 Docker(3)】 - image 是什麼</a>
+            <a href="/2022/01/30/%E3%80%90%E6%B7%B1%E5%85%A5%E6%B7%BA%E5%87%BA%20Docker(2)%E3%80%91-%20Docker%20%E6%98%AF%E4%BB%80%E9%BA%BC/">【深入淺出 Docker(2)】- Docker 是什麼</a>
             
         </span>
-        <span class="column is-12-mobile is-half-desktop  article-nav-next">
-            
-            <a href="/2022/01/30/docker-1-%E5%91%BD%E5%90%8D%E7%9A%84%E7%94%B1%E4%BE%86/">【深入淺出 Docker(1)】 - Docker 命名由來</a>
+        <span class="column is-12-mobile is-half-desktop is-hidden-mobile article-nav-next">
             
         </span>
     </div>
@@ -186,8 +176,8 @@
     
 <script>
     var disqus_config = function () {
-        this.page.url = 'http://example.com/2022/01/30/docker-2-%E4%BB%80%E9%BA%BC%E6%98%AFdocker/';
-        this.page.identifier = '2022/01/30/docker-2-什麼是docker/';
+        this.page.url = 'http://example.com/2022/01/30/%E3%80%90%E6%B7%B1%E5%85%A5%E6%B7%BA%E5%87%BA%20Docker(1)%E3%80%91%20-%20Docker%20%E5%91%BD%E5%90%8D%E7%94%B1%E4%BE%86/';
+        this.page.identifier = '2022/01/30/【深入淺出 Docker(1)】 - Docker 命名由來/';
         
         this.language = 'en';
         

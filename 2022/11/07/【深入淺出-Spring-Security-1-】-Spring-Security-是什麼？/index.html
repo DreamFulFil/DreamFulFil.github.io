@@ -2,7 +2,7 @@
 <html class="has-navbar-fixed-top">
 <head>
     <meta charset="utf-8">
-<title>【深入淺出 Docker(1)】 - Docker 命名由來 - GC&#39;s Garbage Collector</title>
+<title>【深入淺出 Spring Security(1)】- Spring Security 是什麼？ - GC&#39;s Garbage Collector</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
@@ -106,13 +106,13 @@
     <article class="article content gallery" itemscope itemprop="blogPost">
     <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
         
-            【深入淺出 Docker(1)】 - Docker 命名由來
+            【深入淺出 Spring Security(1)】- Spring Security 是什麼？
         
     </h1>
     <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
         <span class="column is-narrow">
             
-                <time datetime="2022-01-30T08:04:00.000Z" itemprop="datePublished">Jan 30 2022</time>
+                <time datetime="2022-11-07T00:21:47.000Z" itemprop="datePublished">Nov 7 2022</time>
             
         </span>
         
@@ -120,29 +120,20 @@
         <span class="column is-narrow">
             
             
-            3 minutes read (About 460 words)
+            a minute read (About 175 words)
         </span>
         
     </div>
     <div class="article-entry is-size-6-mobile" itemprop="articleBody">
     
-        <html><head></head><body><p>平常大家都聽到或稱呼 Docker 習慣了，但您是否知道它的命名由來呢？<br>我相信每一個產品的命名都有它一定的淵源，無論其命名是市場導向，或別有用途，<br>了解它的命名，或許對整體概念能有多一些認識。</p>
+        <html><head></head><body><p>如果有這機會建立一個新的 Spring Project，一定會要花時間處理 Security 的部份。<br>這段說難…真的很難！而且只設定一次，之後也許就再也沒機會碰到了 …<br>筆者最初碰到的時候真的是暈頭轉向，碰一次忘一次，<br>因此決定重新鑽研這一塊並留下筆記與重點，供後人參考之</p>
 <span id="more"></span>
 
-<h3 id="歷史"><a href="#歷史" class="headerlink" title="歷史"></a>歷史</h3><ul>
-<li>在古早時代，<strong>每一種貨物都有其不同的打包方式</strong>。<br>亦或是針對它內容物的性質不同，需要特別的環境安置之…</li>
-<li>然而在碼頭不可能<strong>針對每一項貨物都出專用的工具</strong>，<br>或是配置特別的環境處理某些類型的貨物，於是…<br>有人就想出了<strong>貨櫃</strong>這個打包方式！</li>
-<li>只要你的貨<strong>進了貨櫃</strong>，那在碼頭的工作人員就不必擔心<strong>如何將貨物放置至船上</strong>，只要考慮每一個貨櫃的配重即可。</li>
-<li>即使是那些需要特殊環境的貨物，只要放進特殊環境的貨櫃即可，再也不用在船上特別提供環境~</li>
-</ul>
-<h3 id="比擬"><a href="#比擬" class="headerlink" title="比擬"></a>比擬</h3><ul>
-<li><strong>Docker</strong> 與 <strong>Container</strong> 這個命名的由來，是根據「<strong>貨物</strong>」透過「<strong>貨櫃</strong>」的統一置放方式而來</li>
-<li><strong>Container</strong> 本身除了在 <strong>Linux OS</strong> 是一個 Process 之外，也暗喻我們所開發的 <strong>Application</strong> 是以一個「打包好的形式」被部署在各個環境中。</li>
-<li>也正因如此， <strong>Docker</strong> 的 <strong>Logo</strong> 是隻<strong>鯨魚</strong>上面載著許多貨櫃，就好比是應用程式被以統一包裝方式(container) 被部署。</li>
-</ul>
-<h3 id="小結"><a href="#小結" class="headerlink" title="小結"></a>小結</h3><ul>
-<li>不知看了這篇，是否對 <strong>docker</strong> 本身又更興趣多了點？</li>
-<li>其實容器不只 docker 一種，詳細的以後再寫一篇來談</li>
+<h3 id="什麼是-Spring-Security？"><a href="#什麼是-Spring-Security？" class="headerlink" title="什麼是 Spring Security？"></a>什麼是 Spring Security？</h3><ul>
+<li>它是一個 Spring Project，可參考<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-security/reference/index.html">官方文件</a></li>
+<li>它負責處理 Authentication、Authorization</li>
+<li>它支援所有風險相關的防護(e.g. OWASP Top Ten Vulnerabilities)</li>
+<li>它在網頁是一個 “Servlet Filter”</li>
 </ul>
 </body></html>
     
@@ -150,18 +141,18 @@
     
     <div class="columns is-variable is-1 is-multiline is-mobile">
     
-        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/Docker/">#Docker</a></span>
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/Spring-Security/">#Spring Security</a></span>
     
     </div>
     
     
     <div class="columns is-mobile is-multiline article-nav">
-        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
-            
-            <a href="/2022/01/30/docker-2-%E4%BB%80%E9%BA%BC%E6%98%AFdocker/">【深入淺出 Docker(2)】- Docker 是什麼</a>
+        <span class="column is-12-mobile is-half-desktop is-hidden-mobile article-nav-prev">
             
         </span>
-        <span class="column is-12-mobile is-half-desktop is-hidden-mobile article-nav-next">
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2022/02/10/%E3%80%90%E6%B7%B1%E5%85%A5%E6%B7%BA%E5%87%BA%20Docker(4)%E3%80%91%20-%20docker%20commit/">【深入淺出 Docker(4)】 - docker commit</a>
             
         </span>
     </div>
@@ -176,8 +167,8 @@
     
 <script>
     var disqus_config = function () {
-        this.page.url = 'http://example.com/2022/01/30/docker-1-%E5%91%BD%E5%90%8D%E7%9A%84%E7%94%B1%E4%BE%86/';
-        this.page.identifier = '2022/01/30/docker-1-命名的由來/';
+        this.page.url = 'http://example.com/2022/11/07/%E3%80%90%E6%B7%B1%E5%85%A5%E6%B7%BA%E5%87%BA-Spring-Security-1-%E3%80%91-Spring-Security-%E6%98%AF%E4%BB%80%E9%BA%BC%EF%BC%9F/';
+        this.page.identifier = '2022/11/07/【深入淺出-Spring-Security-1-】-Spring-Security-是什麼？/';
         
         this.language = 'en';
         
