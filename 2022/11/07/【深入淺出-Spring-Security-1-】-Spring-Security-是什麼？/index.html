@@ -120,20 +120,61 @@
         <span class="column is-narrow">
             
             
-            a minute read (About 175 words)
+            4 minutes read (About 628 words)
         </span>
         
     </div>
     <div class="article-entry is-size-6-mobile" itemprop="articleBody">
     
-        <html><head></head><body><p>如果有這機會建立一個新的 Spring Project，一定會要花時間處理 Security 的部份。<br>這段說難…真的很難！而且只設定一次，之後也許就再也沒機會碰到了 …<br>筆者最初碰到的時候真的是暈頭轉向，碰一次忘一次，<br>因此決定重新鑽研這一塊並留下筆記與重點，供後人參考之</p>
+        <html><head></head><body><p>資安是個 non-functional requirement<br>如果沒人特別要求，或許也不會有人在乎<br>但試想如果銀行的系統出問題了…<br>你的錢就變成別人的錢了呢，是否開始有點同理心了呢？</p>
 <span id="more"></span>
 
-<h3 id="什麼是-Spring-Security？"><a href="#什麼是-Spring-Security？" class="headerlink" title="什麼是 Spring Security？"></a>什麼是 Spring Security？</h3><ul>
-<li>它是一個 Spring Project，可參考<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-security/reference/index.html">官方文件</a></li>
-<li>它負責處理 Authentication、Authorization</li>
-<li>它支援所有風險相關的防護(e.g. OWASP Top Ten Vulnerabilities)</li>
-<li>它在網頁是一個 “Servlet Filter”</li>
+<h2 id="什麼是-Spring-Security？"><a href="#什麼是-Spring-Security？" class="headerlink" title="什麼是 Spring Security？"></a>什麼是 Spring Security？</h2><ul>
+<li>它是一個 Spring Project，詳細內容可參考<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-security/reference/index.html">官方文件</a><ul>
+<li>只要掛上 dependency 就可以使用</li>
+<li>可透過 XML 或 JavaConfig 設定要防護什麼，怎麼防護</li>
+</ul>
+</li>
+<li>它是 “Application” 層級的防護</li>
+<li>它負責處理或支援 Authentication、Authorization</li>
+<li>它支援不少風險相關的防護(e.g. OWASP Top Ten Vulnerabilities)</li>
+<li>它在 Java Web App 是一個 “Servlet Filter”</li>
+<li>它協助處理密碼的管理與加密</li>
+</ul>
+<h3 id="Authentication"><a href="#Authentication" class="headerlink" title="Authentication"></a>Authentication</h3><ul>
+<li>Authentication 指的是確認目前的使用者是誰</li>
+<li>在驗證身份的時候可能需要帳密，也可能是透過外部系統(e.g. AD, LDAP, Google/FB/Twitter..)</li>
+<li>在驗證前，不能對系統作任何的操作</li>
+</ul>
+<h3 id="Authorization"><a href="#Authorization" class="headerlink" title="Authorization"></a>Authorization</h3><ul>
+<li>Authorization 指的是在確定使用者身份後，區分出這個使用者可存取的權限</li>
+<li>比方說可以簡單分 read, write，或是更嚴謹的角色、範疇</li>
+</ul>
+<h3 id="OWASP"><a href="#OWASP" class="headerlink" title="OWASP"></a>OWASP</h3><ul>
+<li>是 Open Web Application Security Project 的縮寫</li>
+<li>上面列出了每一個年度最常被攻擊的風險</li>
+<li>很多開源或付費的解決方案</li>
+<li>常見的風險如 XSS、SQL Injection、CSRF …等</li>
+<li>詳細資訊可參考<a target="_blank" rel="noopener" href="https://owasp.org/www-project-top-ten/">官方網站</a></li>
+</ul>
+<h3 id="Servlet-Filter"><a href="#Servlet-Filter" class="headerlink" title="Servlet Filter"></a>Servlet Filter</h3><ul>
+<li>只要是寫 Java 後端就必備的知識，會在 Request 進來的時，真正進到 Filter 之前處理</li>
+<li>是一種 Chain Of Responsibility Pattern 的變型</li>
+<li>Spring Security 正是掛了一整串的 Filter，處理各式各樣的需求如 Authentication、Authorization、Token 解析…等</li>
+</ul>
+<h3 id="PasswordEncoder"><a href="#PasswordEncoder" class="headerlink" title="PasswordEncoder"></a>PasswordEncoder</h3><ul>
+<li>任何有機密性質的資料都不該被明文儲存(e.g. 使用者密碼)</li>
+<li>Spring Security 可以透過設定不同的 encoder，用以比對或運算出一組被編碼過的值</li>
+</ul>
+<h2 id="為什麼要防護？"><a href="#為什麼要防護？" class="headerlink" title="為什麼要防護？"></a>為什麼要防護？</h2><ul>
+<li>大家都防了你沒防，就好比整條街只有你家大門是開著的</li>
+<li>被攻擊的成本遠大於花時間防護</li>
+<li>Spring Security 的設定相對輕鬆容易，不會有一堆干涉商業邏輯的程式存在</li>
+</ul>
+<h2 id="小結"><a href="#小結" class="headerlink" title="小結"></a>小結</h2><ul>
+<li>Spring Security 是用來加在程式上的一道防護</li>
+<li>Spring Security 可透過不同段的流程驗證使用者的身份與權限</li>
+<li>Spring Security 可幫助防護 OWASP 中提列出的風險</li>
 </ul>
 </body></html>
     
@@ -147,7 +188,9 @@
     
     
     <div class="columns is-mobile is-multiline article-nav">
-        <span class="column is-12-mobile is-half-desktop is-hidden-mobile article-nav-prev">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2022/11/09/%E3%80%90%E6%B7%B1%E5%85%A5%E6%B7%BA%E5%87%BA-Spring-Security-2-%E3%80%91-Hello-World/">【深入淺出 Spring Security(2)】- Hello World</a>
             
         </span>
         <span class="column is-12-mobile is-half-desktop  article-nav-next">
