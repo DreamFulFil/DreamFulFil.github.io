@@ -120,13 +120,114 @@
         <span class="column is-narrow">
             
             
-            a few seconds read (About 0 words)
+            8 minutes read (About 1128 words)
         </span>
         
     </div>
     <div class="article-entry is-size-6-mobile" itemprop="articleBody">
     
-        
+        <html><head></head><body><p>如同平時學程式語言一般，我們也從 Hello World 開始吧！<br>這篇我們會從無到有，建立一個簡單的 endpoint，<br>接著再加入 Security 的元素，並簡單說明框架幫忙做了什麼！</p>
+<span id="more"></span>
+
+<h2 id="「無」-Spring-Security-版本"><a href="#「無」-Spring-Security-版本" class="headerlink" title="「無」 Spring Security 版本"></a>「無」 Spring Security 版本</h2><p>首先就來一個不包含 Spring Security 的 project</p>
+<h3 id="建立一個-Project"><a href="#建立一個-Project" class="headerlink" title="建立一個 Project"></a>建立一個 Project</h3><ul>
+<li>建立的方式就參照各大網站的教學建立一個 Maven Project</li>
+<li>建立的是 Spring Boot Application，其中 starter 的部份請選擇 <strong>Spring-Web</strong>，才能處理基本的請求／回應</li>
+<li>此時的 pom.xml 中的 dependency 大致上長這樣  <figure class="highlight xml hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">   <span class="hljs-tag">&lt;<span class="hljs-name">dependencies</span>&gt;</span></span><br><span class="line">       <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span></span><br><span class="line">           <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span></span><br><span class="line">           <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span></span><br><span class="line">       <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">       <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span></span><br><span class="line">           <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span></span><br><span class="line">           <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-test<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span></span><br><span class="line">           <span class="hljs-tag">&lt;<span class="hljs-name">scope</span>&gt;</span>test<span class="hljs-tag">&lt;/<span class="hljs-name">scope</span>&gt;</span></span><br><span class="line">       <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span></span><br><span class="line"><span class="hljs-tag">&lt;/<span class="hljs-name">dependencies</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure></li>
+</ul>
+<h3 id="建立一個-Endpoint"><a href="#建立一個-Endpoint" class="headerlink" title="建立一個 Endpoint"></a>建立一個 Endpoint</h3><ul>
+<li>首先在 base package 建立一個 HelloController</li>
+<li>接著開出一個方法，回傳的型態是 <strong>String</strong></li>
+<li>最後在實作的部份回傳 “Hello World”</li>
+<li>程式碼大致上會如下:  <figure class="highlight java hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">package</span> org.dream.helloworld;</span><br><span class="line"><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.GetMapping;</span><br><span class="line"><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.RestController;</span><br><span class="line"></span><br><span class="line"><span class="hljs-meta">@RestController</span></span><br><span class="line"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="title class_">HelloWorldController</span> {</span><br><span class="line"></span><br><span class="line">    <span class="hljs-meta">@GetMapping(value = "hello")</span></span><br><span class="line">    <span class="hljs-keyword">public</span> String <span class="title function_">hello</span><span class="hljs-params">()</span> {</span><br><span class="line">        <span class="hljs-keyword">return</span> <span class="hljs-string">"Hello World"</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>@RestController 隱含著 @ResponseBody，代表回傳的結果會是透過預設的 <strong>HttpMessageConverter</strong>(Jackson) 處理</li>
+<li>@GetMapping 代表這個方法接受 HTTP GET</li>
+</ul>
+</li>
+</ul>
+<h3 id="驗證功能"><a href="#驗證功能" class="headerlink" title="驗證功能"></a>驗證功能</h3><ul>
+<li>首先啟動你的 Spring Boot Application</li>
+<li>接著打開瀏覽器，並在網址列輸入 <strong>localhost:8080/hello</strong>，最後按下 enter</li>
+<li>就會在瀏覽器看到如下的畫面囉<br>  <img src="https://i.imgur.com/OZOjFGm.png"></li>
+</ul>
+<h2 id="「有」Spring-Security-版本"><a href="#「有」Spring-Security-版本" class="headerlink" title="「有」Spring Security 版本"></a>「有」Spring Security 版本</h2><p>接著就替我們的程式加上防護吧！</p>
+<h3 id="補上-dependency"><a href="#補上-dependency" class="headerlink" title="補上 dependency"></a>補上 dependency</h3><ul>
+<li>先把先前啟動的服務停掉(除非有掛上 dev-tools)</li>
+<li>在 pom.xml 的 dependencies 中間加上以下  <figure class="highlight xml hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span></span><br><span class="line">    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span></span><br><span class="line">    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-security<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span></span><br><span class="line"><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>這個是 spring boot 針對 security 提供的 starter</li>
+<li>有興趣可以展開它的內容看看大致上包含了什麼東西</li>
+</ul>
+</li>
+<li>接著再啟動一次服務，就會在 console 看到如下的畫面<br>  <img src="https://i.imgur.com/cvmqfzZ.png"><ul>
+<li>紅框框起來的部份，是框架產出的密碼，可以先複製到剪貼簿上</li>
+<li>紅框下方可以看到服務自動被掛上了 DefaultSecurityFilterChain</li>
+</ul>
+</li>
+<li>最後再重試造訪一次 <strong>localhost:8080/hello</strong><br>  <img src="https://i.imgur.com/uP2ONcj.png"><ul>
+<li>咦？需要登入了！</li>
+<li>此時輸入帳號 <strong>user</strong>，密碼為前面複製起來的值，就可以看到如同先前尚未掛上 Spring Security 時的結果</li>
+</ul>
+</li>
+<li><strong>註1</strong>: 如果輸錯帳密就會看到以下畫面<br>  <img src="https://i.imgur.com/XMML30X.png"></li>
+<li><strong>註2</strong>: 可以嘗試一下以如用 curl 會是什麼結果</li>
+</ul>
+<h2 id="Spring-Security-簡述"><a href="#Spring-Security-簡述" class="headerlink" title="Spring Security 簡述"></a>Spring Security 簡述</h2><h3 id="Spring-Security-的流程"><a href="#Spring-Security-的流程" class="headerlink" title="Spring Security 的流程"></a>Spring Security 的流程</h3><ul>
+<li>首先請求進到服務，被 <strong>AuthenticationFilter</strong> 攔截<ul>
+<li>這個 Filter 跟 Java EE 中的 ServletFilter 是近乎相同的概念</li>
+<li>這個 Filter 預設會解析請求的 Header 中所包含的使用者與密碼當作 Token，這也是為什麼用帳號密碼可以登入</li>
+</ul>
+</li>
+<li>接著「驗證」被交給 <strong>AuthenticationManager</strong> 處理</li>
+<li><strong>AuthenticationManager</strong> 把驗證委派給一至多個 <strong>AuthenticationProvider</strong> 處理<ul>
+<li>常見的實作有 Ldap、Dao、OAuth2 …等</li>
+<li>也可以自定義！</li>
+</ul>
+</li>
+<li><strong>AuthenticationProvider</strong> 把找人的部份交給了 <strong>UserDetailsService</strong>，並把密碼屏蔽的部份交給了 <strong>PasswordEncoder</strong><ul>
+<li>UserDetailsService 可以自行實作，或用 Spring Security 內建提供的，如同範例用到的就叫 <strong>InMemoryUserDetailsService</strong>(後續會再提)</li>
+<li>PasswordEncoder 常見的有 BCrypt、SCrypt、NoOp …等內建的</li>
+</ul>
+</li>
+<li>以上的結果會存放到 <strong>SecurityContext</strong><ul>
+<li>可以把它當作一個存放登入後的資訊的點</li>
+<li>這是一個 In-Memory 且 ThreadLocal 的值</li>
+</ul>
+</li>
+</ul>
+<h3 id="從系統角度看它做了什麼？"><a href="#從系統角度看它做了什麼？" class="headerlink" title="從系統角度看它做了什麼？"></a>從系統角度看它做了什麼？</h3><ul>
+<li>實作 UserDetailsService 並建立一個 user，且設定帳密</li>
+<li>設定 HTTP Basic Authentication</li>
+<li>防護「所有的」 endpoint，需 <strong>Authenticate</strong> 過才能存取</li>
+<li>很多其它的元件被設定了預設值(目前還沒看到)</li>
+</ul>
+<h3 id="這樣就好了？"><a href="#這樣就好了？" class="headerlink" title="這樣就好了？"></a>這樣就好了？</h3><ul>
+<li>當時不是，雖然目前系統已加上了防護，但仍有幾個問題<ul>
+<li>帳密只有一組(如果別人也要使用服務？)</li>
+<li>密碼印在 console(這風險還不夠大嗎？)</li>
+<li>所有的 endpoint 都被防護</li>
+<li>驗證的方式並非自行設定的 ..</li>
+<li>…(略)</li>
+</ul>
+</li>
+<li>除了以上提到的部份之外，請留意這就是 <strong>Convention over Configuration</strong><ul>
+<li>什麼都不用做，或是照一些慣例設定就可以達到很複雜的功能的基本設定</li>
+<li>但這不代表真的所有系統都完全不用再設定了</li>
+</ul>
+</li>
+</ul>
+<h2 id="小結"><a href="#小結" class="headerlink" title="小結"></a>小結</h2><ul>
+<li>從此篇可以了解到，掛上 dependency，spring security 做了什麼<strong>預設的</strong>處理</li>
+<li>下一篇開始將依 Spring Security 各個環節提供自訂的實作</li>
+</ul>
+</body></html>
+    
+    </div>
+    
+    <div class="columns is-variable is-1 is-multiline is-mobile">
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/Spring-Security/">#Spring Security</a></span>
     
     </div>
     
