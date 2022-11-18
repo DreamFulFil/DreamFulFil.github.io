@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head>
+    <meta charset="utf-8">
+<title>【深入淺出 Spring Security(3)】- Hello World(Part II) - GC&#39;s Garbage Collector</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+<meta name="description" content="Sharing study notes and technical knowledge">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+
+<meta name="generator" content="Hexo 6.0.0"></head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                    
+                    GC
+                    
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-start">
+            
+            <a class="navbar-item "
+               href="/archives">Archives</a>
+            
+            <a class="navbar-item "
+               href="/about">About</a>
+            
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            <a class="navbar-item search" title="Search" href="javascript:;">
+                <i class="fas fa-search"></i>
+            </a>
+            
+            
+            
+            <a class="navbar-item" title="GitHub" target="_blank" rel="noopener" href="https://github.com/DreamFulFil">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+               
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            【深入淺出 Spring Security(3)】- Hello World(Part II)
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            
+                <time datetime="2022-11-18T00:07:51.000Z" itemprop="datePublished">Nov 18 2022</time>
+            
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            6 minutes read (About 927 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <html><head></head><body><p>前一篇我們套用了預設的組態<br>但很顯然這是不夠的 …<br>要如何才能自定義那些預設的行為呢？</p>
+<span id="more"></span>
+
+<h2 id="覆寫預設的組態"><a href="#覆寫預設的組態" class="headerlink" title="覆寫預設的組態"></a>覆寫預設的組態</h2><h3 id="InMemoryUserDetailsManager"><a href="#InMemoryUserDetailsManager" class="headerlink" title="InMemoryUserDetailsManager"></a>InMemoryUserDetailsManager</h3><ul>
+<li>在預設的組態中，使用者永遠是 <strong>user</strong>，而密碼是啟動系統時隨機產出的一組像是 UUID 的值</li>
+<li>此時可以使用 Spring Security 預設的類別，叫 <strong>InMemoryUserDetailsManager</strong></li>
+<li>首先先定義一個類別叫 SecurityConfiguration，其內容如下:  <figure class="highlight java hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="hljs-keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="hljs-keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="hljs-keyword">import</span> org.springframework.security.core.userdetails.User;</span><br><span class="line"><span class="hljs-keyword">import</span> org.springframework.security.core.userdetails.UserDetails;</span><br><span class="line"><span class="hljs-keyword">import</span> org.springframework.security.provisioning.InMemoryUserDetailsManager;</span><br><span class="line"></span><br><span class="line"><span class="hljs-meta">@Configuration</span></span><br><span class="line"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="title class_">SecurityConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="hljs-meta">@Bean</span></span><br><span class="line">    <span class="hljs-keyword">public</span> InMemoryUserDetailsManager <span class="title function_">inMemoryUserDetails</span><span class="hljs-params">()</span> {            </span><br><span class="line">        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="title class_">InMemoryUserDetailsManager</span>();</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>尚未設定任何使用者</li>
+<li>InMemoryUserDetailsManager 被設成 Bean，啟動系統時會被注入</li>
+</ul>
+</li>
+<li>啟動系統後請留意兩件事<ul>
+<li>系統<strong>不再</strong>自動產生一組隨機密碼<br>  <img src="https://i.imgur.com/pk3vZW5.png"></li>
+<li>此時如用 curl 去打先前定義的 <strong>hello</strong> endpoint，會回傳 401，如下所示:<br>  <img src="https://i.imgur.com/z2jIIF9.png"></li>
+</ul>
+</li>
+<li>可如果就停在這，也無法登入，因此還要接著設定使用者如下:  <figure class="highlight java hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">List&lt;UserDetails&gt; userDetails = </span><br><span class="line">        Arrays.asList(</span><br><span class="line">            User.builder()</span><br><span class="line">                .username(<span class="hljs-string">"test"</span>)</span><br><span class="line">                .password(<span class="hljs-string">"12345"</span>)</span><br><span class="line">                .authorities(<span class="hljs-string">"ROLE_ADMIN"</span>)</span><br><span class="line">                .build()</span><br><span class="line">        );</span><br><span class="line">    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="title class_">InMemoryUserDetailsManager</span>(userDetails);</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>這邊多定義了個 <strong>UserDetails</strong> 的 List</li>
+<li>UserDetails 可透過 User.builder 建立</li>
+<li>建立時基本上必須提供 username, password, authorities(詳見下方)</li>
+</ul>
+</li>
+</ul>
+<h3 id="PasswordEncoder"><a href="#PasswordEncoder" class="headerlink" title="PasswordEncoder"></a>PasswordEncoder</h3><ul>
+<li>這個時候如果再試一次 curl，仍然會是 401，而 console 會出現以下的錯誤訊息<br>  <img src="https://i.imgur.com/rHbV9SE.png"><ul>
+<li>主要是在描述在比對密碼時，<strong>找不到</strong>一個對應的 PasswordEncoder 可使用</li>
+<li>這個訊息可以從 DelegatingPasswordEncoder 中看到(後續會再詳談)</li>
+</ul>
+</li>
+<li>既然缺 PasswordEncoder 我們就補一個給它！  <figure class="highlight java hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-meta">@Bean</span></span><br><span class="line"><span class="hljs-keyword">public</span> PasswordEncoder <span class="title function_">passwordEncoder</span><span class="hljs-params">()</span> {</span><br><span class="line">    <span class="hljs-keyword">return</span> NoOpPasswordEncoder.getInstance();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>NoOpPasswordEncoder 顧名思義就是只比對純文字</li>
+<li>從 IDE 看的話它會提示你這是 @Deprecated 的類別，但沒關係，這只是開發時期用的(應該吧)</li>
+</ul>
+</li>
+<li>此時，curl 應該就會正常顯示 <strong>Hello World</strong><br>  <img src="https://i.imgur.com/Mg2baTZ.jpg"></li>
+</ul>
+<h3 id="Authorization"><a href="#Authorization" class="headerlink" title="Authorization"></a>Authorization</h3><ul>
+<li>還記得前面提到預設是阻擋所有的 endpoint 嗎？</li>
+<li>這個部份主要是覆透過 Authorization 的設定可異動的</li>
+<li>首先在 SecurityConfiguration 中再定義一個 Bean 如下:  <figure class="highlight java hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-meta">@Bean</span></span><br><span class="line"><span class="hljs-keyword">public</span> SecurityFilterChain <span class="title function_">filterChain</span><span class="hljs-params">(HttpSecurity http)</span> <span class="hljs-keyword">throws</span> Exception {</span><br><span class="line">    http</span><br><span class="line">        .authorizeRequests()</span><br><span class="line">        .anyRequest().authenticated()</span><br><span class="line">        .and()</span><br><span class="line">        .httpBasic();</span><br><span class="line">        </span><br><span class="line">    <span class="hljs-keyword">return</span> http.build();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>從 Spring Security 5.7 開始，都會定義在 <strong>SecurityFilterChain</strong>，舊時代的 WebSecurityConfigurerAdapter 在不久的未來會被移除 </li>
+<li>anyRequest 就是任何 URL 都要授權</li>
+<li>authenticated 代表要驗證過身份</li>
+<li>綜上所述，以白話來說就是<strong>任何請求</strong>都要<strong>登入</strong>，跟預設的行為是一致的，所以即使加上這一設定，curl 還是可以動(因為有在 header 附上帳密)</li>
+</ul>
+</li>
+</ul>
+<h2 id="Q-amp-A"><a href="#Q-amp-A" class="headerlink" title="Q&amp;A"></a>Q&amp;A</h2><ul>
+<li>我要<strong>開放</strong>！<ul>
+<li>Q: 如果我想要不登入也能打 hello 這個 endpoint 呢？</li>
+<li>A: 此時把 authenticated 改成 permitAll 即可</li>
+</ul>
+</li>
+<li><strong>不加密</strong>不會出事嗎？<ul>
+<li>Q: 難道只有 NoOpPasswordEncoder 可以用？</li>
+<li>A: 當然不，後續會再提到別種 Encoder</li>
+</ul>
+</li>
+<li><strong>Basic Authorization</strong><ul>
+<li>Q: 我看那個 header 有個 **Basic dGVzdDoxMjM0NQ==**，什麼鬼？</li>
+<li>A: 其實這是 username/password 的 透過 Base64 encode 之後的結果<ul>
+<li>有興趣可以在瀏覽器透過 btoa/atob 對字串處理</li>
+<li>它不具安全性，有心的人如果攔截到還是可以看到明文喔！</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>全擋？<ul>
+<li>Q: 不能針對特定 URL 開放某種權限嗎？</li>
+<li>A: 可，後續會再深談</li>
+</ul>
+</li>
+</ul>
+<h2 id="小結"><a href="#小結" class="headerlink" title="小結"></a>小結</h2><ul>
+<li>定義了 <strong>InMemoryUserDetailsManager</strong> 覆寫了 Authentication 時用到的帳密設定</li>
+<li>定義了 NoOpPasswordEncoder，以純文字比對密碼</li>
+<li>定義了 SecurityFilterChain 處理 Authorization</li>
+<li>下一篇會再透過<strong>另一種方式</strong>覆寫預設的行為</li>
+</ul>
+<h2 id="備註"><a href="#備註" class="headerlink" title="備註"></a>備註</h2><ul>
+<li>原始碼請參考<a target="_blank" rel="noopener" href="https://github.com/DreamFulFil/security-demo/commits/main">連結</a></li>
+</ul>
+</body></html>
+    
+    </div>
+    
+    <div class="columns is-variable is-1 is-multiline is-mobile">
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/Spring-Security/">#Spring Security</a></span>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop is-hidden-mobile article-nav-prev">
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2022/11/09/%E3%80%90%E6%B7%B1%E5%85%A5%E6%B7%BA%E5%87%BA-Spring-Security-2-%E3%80%91-Hello-World/">【深入淺出 Spring Security(2)】- Hello World(Part I)</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+<div class="comments">
+    <h3 class="title is-4">Comments</h3>
+    
+<script>
+    var disqus_config = function () {
+        this.page.url = 'http://example.com/2022/11/18/%E3%80%90%E6%B7%B1%E5%85%A5%E6%B7%BA%E5%87%BA-Spring-Security-3-%E3%80%91-Hello-World-Part-II/';
+        this.page.identifier = '2022/11/18/【深入淺出-Spring-Security-3-】-Hello-World-Part-II/';
+        
+        this.language = 'en';
+        
+    };
+    (function() {
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'gc-garbage-collector' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+<div id="disqus_thread">
+    
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</div>
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2022 GC&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> & <a
+                        target="_blank" rel="noopener" href="http://github.com/ppoffice/hexo-theme-minos">Minos</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            <div class="column is-narrow">
+                <div class="columns is-mobile is-multiline is-centered">
+                
+                    
+                <a class="column is-narrow has-text-black" title="GitHub" target="_blank" rel="noopener" href="https://github.com/DreamFulFil">
+                    
+                    GitHub
+                    
+                </a>
+                
+                </div>
+            </div>
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("en-AU");
+</script>
+
+
+    
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        "HTML-CSS": {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+</script>
+
+    
+    
+    
+    
+<script src="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/js/lightgallery-all.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/js/jquery.justifiedGallery.min.js"></script>
+<script>
+    (function ($) {
+        $(document).ready(function () {
+            if (typeof($.fn.lightGallery) === 'function') {
+                $('.article.gallery').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof($.fn.justifiedGallery) === 'function') {
+                $('.justified-gallery').justifiedGallery();
+            }
+        });
+    })(jQuery);
+</script>
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <style>
+        .hljs {
+            position: relative;
+        }
+
+        .hljs .clipboard-btn {
+            float: right;
+            color: #9a9a9a;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hljs .clipboard-btn:hover {
+          color: #8a8a8a;
+        }
+
+        .hljs > .clipboard-btn {
+            display: none;
+            position: absolute;
+            right: 4px;
+            top: 4px;
+        }
+
+        .hljs:hover > .clipboard-btn {
+            display: inline;
+        }
+
+        .hljs > figcaption > .clipboard-btn {
+            margin-right: 4px;
+        }
+    </style>
+    <script>
+      $(document).ready(function () {
+        $('figure.hljs').each(function(i, figure) {
+          var codeId = 'code-' + i;
+          var code = figure.querySelector('.code');
+          var copyButton = $('<button>Copy <i class="far fa-clipboard"></i></button>');
+          code.id = codeId;
+          copyButton.addClass('clipboard-btn');
+          copyButton.attr('data-clipboard-target-id', codeId);
+
+          var figcaption = figure.querySelector('figcaption');
+
+          if (figcaption) {
+            figcaption.append(copyButton[0]);
+          } else {
+            figure.prepend(copyButton[0]);
+          }
+        })
+
+        var clipboard = new ClipboardJS('.clipboard-btn', {
+          target: function(trigger) {
+            return document.getElementById(trigger.getAttribute('data-clipboard-target-id'));
+          }
+        });
+        clipboard.on('success', function(e) {
+          e.clearSelection();
+        })
+      })
+    </script>
+
+    
+    
+
+    
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-mask"></div>
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="Type something..." />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: 'Posts',
+                PAGES: 'Pages',
+                CATEGORIES: 'Categories',
+                TAGS: 'Tags',
+                UNTITLED: '(Untitled)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+    
+</body>
+</html>
