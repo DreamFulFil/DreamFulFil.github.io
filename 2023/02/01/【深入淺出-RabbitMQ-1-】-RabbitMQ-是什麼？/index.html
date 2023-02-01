@@ -2,7 +2,7 @@
 <html class="has-navbar-fixed-top">
 <head>
     <meta charset="utf-8">
-<title>Categories - GC&#39;s Garbage Collector</title>
+<title>【深入淺出 RabbitMQ(1)】- RabbitMQ 是什麼？ - GC&#39;s Garbage Collector</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
@@ -101,18 +101,157 @@
     </div>
 </nav>
 
-    <section class="section section-heading">
+    <section class="section">
     <div class="container">
-        <div class="content">
-            <h5><i class="far fa-folder"></i>Categories</h5>
-        </div>
-    </div>
-</section>
-<section class="section">
-    <div class="container">
-        <div class="columns is-variable is-1 is-multiline is-mobile">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            【深入淺出 RabbitMQ(1)】- RabbitMQ 是什麼？
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
             
-        </div>
+                <time datetime="2023-02-01T00:51:12.000Z" itemprop="datePublished">Feb 1 2023</time>
+            
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            5 minutes read (About 688 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <html><head></head><body><p>軟體開發的世界中，溝通的方式有很多種。<br>從單一<strong>程式內</strong>部的方法呼叫(Procedure call)<br>到單一OS內的<strong>跨行程</strong>呼叫(Inter Process call)<br>到不同機器間<strong>遠端</strong>的呼叫的 RPC(e.g. RMI, CORBA)<br>而 RabbitMQ 可以支援上面所有的溝通方式</p>
+<span id="more"></span>
+
+<h2 id="什麼是-RabbitMQ？"><a href="#什麼是-RabbitMQ？" class="headerlink" title="什麼是 RabbitMQ？"></a>什麼是 RabbitMQ？</h2><ul>
+<li>MQ 是 <strong>M</strong>essage <strong>Q</strong>ueue 的縮寫<ul>
+<li>Queue 是一種資料結構，有著 FIFO 的特性</li>
+<li>在 Java 中預設可以在 java.util.Queue 看到介面的定義，常見的實作有:<ul>
+<li>ArrayDeque，底層是陣列的實作</li>
+<li>BlockingQueue，主要用在處理多執行緒的情境</li>
+<li>…(略)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>它是一種 Message <strong>Broker</strong><ul>
+<li>Broker 的中文翻譯就是經紀人、中間人、調停人…等<ul>
+<li>Stock Broker 就是股票經紀人</li>
+<li>Real-estate Broker 就是房地産經紀人</li>
+<li>以此類推，RabbitMQ 就是<strong>訊息</strong>的經紀人，也就是說訊息本身會透過它來傳遞，而且是以 Queue 的資料結構在處理訊息</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>它主要支援的協定是 AMQP<ul>
+<li>AMQP 是 Advanced Message Queue Protocol 的縮寫<ul>
+<li>目前 RabbitMQ 支援的版本是 <strong>AMQP 0-9-1</strong></li>
+<li>其它還有 AMQP 0-10、AMQP 1.0 …等就不在此多談</li>
+</ul>
+</li>
+<li>此外 RabbitMQ 還支援 STOMP、MQTT、RabbitMQ Streams…等協定</li>
+</ul>
+</li>
+<li>它主要有三個角色<ul>
+<li><strong>Broker</strong><ul>
+<li>就是 RabbitMQ 本身</li>
+<li>負責接收訊息，存放訊息，分派訊息</li>
+</ul>
+</li>
+<li><strong>Producer</strong><ul>
+<li>就是一般說的生產者</li>
+<li>負責產出訊息</li>
+</ul>
+</li>
+<li><strong>Consumer</strong><ul>
+<li>就是一般說的消費者</li>
+<li>負責接收訊息</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="什麼時候會用到？"><a href="#什麼時候會用到？" class="headerlink" title="什麼時候會用到？"></a>什麼時候會用到？</h2><ul>
+<li>反向思考，RabbitMQ 支援的是:<ul>
+<li><strong>非同步</strong>的訊息溝通<ul>
+<li>訊息會先從生產者發到 RabbitMQ，再由消費者從 RabbitMQ 取得</li>
+<li>從這個點來看，很適合排程類的任務，或是不需要馬上通知系統使用者結果的(e.g. 信用卡送件審核)</li>
+<li>此外，因為生產者、消費者雙方解耦，因此也不用特別綁定某一組 HOST + PORT，或是透過 service discovery 的機制處理溝通</li>
+</ul>
+</li>
+<li>可靠的<strong>重試</strong>機制<ul>
+<li>在 AMQP 協定中，消費者可透過 ACK (Acknowledgement) 的機制通知 RabbitMQ 訊息已確定收到</li>
+<li>承上，生產者也可以透過 Transaction 或是 publisher confirm 確定訊息有被正確送到 RabbitMQ</li>
+<li>以上所提的機制，可以很單純地達到 Retry 的機制，而不用一堆複雜的 Error Handling 或是 Circuit Breaker 設計模式處理訊息發送或接受失敗的狀況</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>因此，沒有什麼絕對要用到的情境，而是去理解它能怎樣幫忙解決目前的需求而定</li>
+</ul>
+<h2 id="小結"><a href="#小結" class="headerlink" title="小結"></a>小結</h2><ul>
+<li>RabbitMQ 是一種 Message Broker</li>
+<li>RabbitMQ 可簡單處理非同步的溝通</li>
+<li>RabbitMQ 讓重試機制變得單純</li>
+</ul>
+</body></html>
+    
+    </div>
+    
+    <div class="columns is-variable is-1 is-multiline is-mobile">
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/RabbitMQ/">#RabbitMQ</a></span>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop is-hidden-mobile article-nav-prev">
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2022/11/18/%E3%80%90%E6%B7%B1%E5%85%A5%E6%B7%BA%E5%87%BA-Spring-Security-3-%E3%80%91-Hello-World-Part-II/">【深入淺出 Spring Security(3)】- Hello World(Part II)</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+<div class="comments">
+    <h3 class="title is-4">Comments</h3>
+    
+<script>
+    var disqus_config = function () {
+        this.page.url = 'http://example.com/2023/02/01/%E3%80%90%E6%B7%B1%E5%85%A5%E6%B7%BA%E5%87%BA-RabbitMQ-1-%E3%80%91-RabbitMQ-%E6%98%AF%E4%BB%80%E9%BA%BC%EF%BC%9F/';
+        this.page.identifier = '2023/02/01/【深入淺出-RabbitMQ-1-】-RabbitMQ-是什麼？/';
+        
+        this.language = 'en';
+        
+    };
+    (function() {
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'gc-garbage-collector' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+<div id="disqus_thread">
+    
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</div>
+
     </div>
 </section>
     <footer class="footer">
