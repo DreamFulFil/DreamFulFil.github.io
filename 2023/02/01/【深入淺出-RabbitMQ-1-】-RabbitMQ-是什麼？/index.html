@@ -120,7 +120,7 @@
         <span class="column is-narrow">
             
             
-            5 minutes read (About 688 words)
+            5 minutes read (About 695 words)
         </span>
         
     </div>
@@ -129,36 +129,26 @@
         <html><head></head><body><p>軟體開發的世界中，溝通的方式有很多種。<br>從單一<strong>程式內</strong>部的方法呼叫(Procedure call)<br>到單一OS內的<strong>跨行程</strong>呼叫(Inter Process call)<br>到不同機器間<strong>遠端</strong>的呼叫的 RPC(e.g. RMI, CORBA)<br>而 RabbitMQ 可以支援上面所有的溝通方式</p>
 <span id="more"></span>
 
-<h2 id="什麼是-RabbitMQ？"><a href="#什麼是-RabbitMQ？" class="headerlink" title="什麼是 RabbitMQ？"></a>什麼是 RabbitMQ？</h2><ul>
-<li>MQ 是 <strong>M</strong>essage <strong>Q</strong>ueue 的縮寫<ul>
+<h2 id="什麼是-RabbitMQ？"><a href="#什麼是-RabbitMQ？" class="headerlink" title="什麼是 RabbitMQ？"></a>什麼是 RabbitMQ？</h2><h3 id="MQ-是-Message-Queue-的縮寫"><a href="#MQ-是-Message-Queue-的縮寫" class="headerlink" title="MQ 是 Message Queue 的縮寫"></a>MQ 是 <strong>M</strong>essage <strong>Q</strong>ueue 的縮寫</h3><ul>
 <li>Queue 是一種資料結構，有著 FIFO 的特性</li>
 <li>在 Java 中預設可以在 java.util.Queue 看到介面的定義，常見的實作有:<ul>
 <li>ArrayDeque，底層是陣列的實作</li>
 <li>BlockingQueue，主要用在處理多執行緒的情境</li>
-<li>…(略)</li>
+<li>…(略)<h3 id="它是一種-Message-Broker"><a href="#它是一種-Message-Broker" class="headerlink" title="它是一種 Message Broker"></a>它是一種 Message <strong>Broker</strong></h3></li>
 </ul>
 </li>
-</ul>
-</li>
-<li>它是一種 Message <strong>Broker</strong><ul>
 <li>Broker 的中文翻譯就是經紀人、中間人、調停人…等<ul>
 <li>Stock Broker 就是股票經紀人</li>
 <li>Real-estate Broker 就是房地産經紀人</li>
-<li>以此類推，RabbitMQ 就是<strong>訊息</strong>的經紀人，也就是說訊息本身會透過它來傳遞，而且是以 Queue 的資料結構在處理訊息</li>
+<li>以此類推，RabbitMQ 就是<strong>訊息</strong>的經紀人，也就是說訊息本身會透過它來傳遞，而且是以 Queue 的資料結構在處理訊息<h3 id="它主要支援的協定是-AMQP"><a href="#它主要支援的協定是-AMQP" class="headerlink" title="它主要支援的協定是 AMQP"></a>它主要支援的協定是 AMQP</h3></li>
 </ul>
 </li>
-</ul>
-</li>
-<li>它主要支援的協定是 AMQP<ul>
 <li>AMQP 是 Advanced Message Queue Protocol 的縮寫<ul>
 <li>目前 RabbitMQ 支援的版本是 <strong>AMQP 0-9-1</strong></li>
 <li>其它還有 AMQP 0-10、AMQP 1.0 …等就不在此多談</li>
 </ul>
 </li>
-<li>此外 RabbitMQ 還支援 STOMP、MQTT、RabbitMQ Streams…等協定</li>
-</ul>
-</li>
-<li>它主要有三個角色<ul>
+<li>此外 RabbitMQ 還支援 STOMP、MQTT、RabbitMQ Streams…等協定<h3 id="主要有三個角色"><a href="#主要有三個角色" class="headerlink" title="主要有三個角色"></a>主要有三個角色</h3></li>
 <li><strong>Broker</strong><ul>
 <li>就是 RabbitMQ 本身</li>
 <li>負責接收訊息，存放訊息，分派訊息</li>
@@ -175,10 +165,7 @@
 </ul>
 </li>
 </ul>
-</li>
-</ul>
-<h2 id="什麼時候會用到？"><a href="#什麼時候會用到？" class="headerlink" title="什麼時候會用到？"></a>什麼時候會用到？</h2><ul>
-<li>反向思考，RabbitMQ 支援的是:<ul>
+<h2 id="什麼時候會用到？"><a href="#什麼時候會用到？" class="headerlink" title="什麼時候會用到？"></a>什麼時候會用到？</h2><h3 id="反向思考，RabbitMQ-支援的是"><a href="#反向思考，RabbitMQ-支援的是" class="headerlink" title="反向思考，RabbitMQ 支援的是:"></a>反向思考，RabbitMQ 支援的是:</h3><ul>
 <li><strong>非同步</strong>的訊息溝通<ul>
 <li>訊息會先從生產者發到 RabbitMQ，再由消費者從 RabbitMQ 取得</li>
 <li>從這個點來看，很適合排程類的任務，或是不需要馬上通知系統使用者結果的(e.g. 信用卡送件審核)</li>
@@ -188,12 +175,12 @@
 <li>可靠的<strong>重試</strong>機制<ul>
 <li>在 AMQP 協定中，消費者可透過 ACK (Acknowledgement) 的機制通知 RabbitMQ 訊息已確定收到</li>
 <li>承上，生產者也可以透過 Transaction 或是 publisher confirm 確定訊息有被正確送到 RabbitMQ</li>
-<li>以上所提的機制，可以很單純地達到 Retry 的機制，而不用一堆複雜的 Error Handling 或是 Circuit Breaker 設計模式處理訊息發送或接受失敗的狀況</li>
+<li>以上所提的機制，可以很單純地達到 Retry 的機制，而不用一堆複雜的 Error Handling 或是 Circuit Breaker 設計模式處理訊息發送或接受失敗的狀況<h3 id="幾個可以判斷的基準"><a href="#幾個可以判斷的基準" class="headerlink" title="幾個可以判斷的基準"></a>幾個可以判斷的基準</h3></li>
 </ul>
 </li>
-</ul>
-</li>
-<li>因此，沒有什麼絕對要用到的情境，而是去理解它能怎樣幫忙解決目前的需求而定</li>
+<li>與同步溝通(e.g. REST API) 之間的差異</li>
+<li>是否有需要完全解耦</li>
+<li>是否有需要可靠的重試機制</li>
 </ul>
 <h2 id="小結"><a href="#小結" class="headerlink" title="小結"></a>小結</h2><ul>
 <li>RabbitMQ 是一種 Message Broker</li>
