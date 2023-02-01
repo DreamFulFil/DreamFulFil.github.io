@@ -134,21 +134,27 @@
 <li>在 Java 中預設可以在 java.util.Queue 看到介面的定義，常見的實作有:<ul>
 <li>ArrayDeque，底層是陣列的實作</li>
 <li>BlockingQueue，主要用在處理多執行緒的情境</li>
-<li>…(略)<h3 id="它是一種-Message-Broker"><a href="#它是一種-Message-Broker" class="headerlink" title="它是一種 Message Broker"></a>它是一種 Message <strong>Broker</strong></h3></li>
+<li>…(略)</li>
 </ul>
 </li>
+</ul>
+<h3 id="它是一種-Message-Broker"><a href="#它是一種-Message-Broker" class="headerlink" title="它是一種 Message Broker"></a>它是一種 Message <strong>Broker</strong></h3><ul>
 <li>Broker 的中文翻譯就是經紀人、中間人、調停人…等<ul>
 <li>Stock Broker 就是股票經紀人</li>
 <li>Real-estate Broker 就是房地産經紀人</li>
-<li>以此類推，RabbitMQ 就是<strong>訊息</strong>的經紀人，也就是說訊息本身會透過它來傳遞，而且是以 Queue 的資料結構在處理訊息<h3 id="它主要支援的協定是-AMQP"><a href="#它主要支援的協定是-AMQP" class="headerlink" title="它主要支援的協定是 AMQP"></a>它主要支援的協定是 AMQP</h3></li>
+<li>以此類推，RabbitMQ 就是<strong>訊息</strong>的經紀人，也就是說訊息本身會透過它來傳遞，而且是以 Queue 的資料結構在處理訊息</li>
 </ul>
 </li>
+</ul>
+<h3 id="它主要支援的協定是-AMQP"><a href="#它主要支援的協定是-AMQP" class="headerlink" title="它主要支援的協定是 AMQP"></a>它主要支援的協定是 AMQP</h3><ul>
 <li>AMQP 是 Advanced Message Queue Protocol 的縮寫<ul>
 <li>目前 RabbitMQ 支援的版本是 <strong>AMQP 0-9-1</strong></li>
 <li>其它還有 AMQP 0-10、AMQP 1.0 …等就不在此多談</li>
 </ul>
 </li>
-<li>此外 RabbitMQ 還支援 STOMP、MQTT、RabbitMQ Streams…等協定<h3 id="主要有三個角色"><a href="#主要有三個角色" class="headerlink" title="主要有三個角色"></a>主要有三個角色</h3></li>
+<li>此外 RabbitMQ 還支援 STOMP、MQTT、RabbitMQ Streams…等協定</li>
+</ul>
+<h3 id="主要有三個角色"><a href="#主要有三個角色" class="headerlink" title="主要有三個角色"></a>主要有三個角色</h3><ul>
 <li><strong>Broker</strong><ul>
 <li>就是 RabbitMQ 本身</li>
 <li>負責接收訊息，存放訊息，分派訊息</li>
@@ -175,9 +181,11 @@
 <li>可靠的<strong>重試</strong>機制<ul>
 <li>在 AMQP 協定中，消費者可透過 ACK (Acknowledgement) 的機制通知 RabbitMQ 訊息已確定收到</li>
 <li>承上，生產者也可以透過 Transaction 或是 publisher confirm 確定訊息有被正確送到 RabbitMQ</li>
-<li>以上所提的機制，可以很單純地達到 Retry 的機制，而不用一堆複雜的 Error Handling 或是 Circuit Breaker 設計模式處理訊息發送或接受失敗的狀況<h3 id="幾個可以判斷的基準"><a href="#幾個可以判斷的基準" class="headerlink" title="幾個可以判斷的基準"></a>幾個可以判斷的基準</h3></li>
+<li>以上所提的機制，可以很單純地達到 Retry 的機制，而不用一堆複雜的 Error Handling 或是 Circuit Breaker 設計模式處理訊息發送或接受失敗的狀況</li>
 </ul>
 </li>
+</ul>
+<h3 id="幾個可以判斷的基準"><a href="#幾個可以判斷的基準" class="headerlink" title="幾個可以判斷的基準"></a>幾個可以判斷的基準</h3><ul>
 <li>與同步溝通(e.g. REST API) 之間的差異</li>
 <li>是否有需要完全解耦</li>
 <li>是否有需要可靠的重試機制</li>
