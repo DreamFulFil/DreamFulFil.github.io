@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+<head>
+    <meta charset="utf-8">
+<title>【深入淺出 RabbitMQ(3)】- 訊息篇 - GC&#39;s Garbage Collector</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
+
+
+
+
+<meta name="description" content="Sharing study notes and technical knowledge">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ovo|Source+Code+Pro">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/css/justifiedGallery.min.css">
+
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+<script defer src="//use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+
+<meta name="generator" content="Hexo 6.0.0"></head>
+<body>
+    
+<nav class="navbar is-transparent is-fixed-top navbar-main" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item navbar-logo" href="/">
+                
+                    
+                    GC
+                    
+                
+            </a>
+            <div class="navbar-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="navbar-menu navbar-start">
+            
+            <a class="navbar-item "
+               href="/archives">Archives</a>
+            
+            <a class="navbar-item "
+               href="/about">About</a>
+            
+        </div>
+        
+        <div class="navbar-menu navbar-end">
+            
+            <a class="navbar-item search" title="Search" href="javascript:;">
+                <i class="fas fa-search"></i>
+            </a>
+            
+            
+            
+            <a class="navbar-item" title="GitHub" target="_blank" rel="noopener" href="https://github.com/DreamFulFil">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+               
+            
+        </div>
+    </div>
+</nav>
+
+    <section class="section">
+    <div class="container">
+    <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            【深入淺出 RabbitMQ(3)】- 訊息篇
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            
+                <time datetime="2023-02-07T00:22:13.000Z" itemprop="datePublished">Feb 7 2023</time>
+            
+        </span>
+        
+        
+        <span class="column is-narrow">
+            
+            
+            11 minutes read (About 1718 words)
+        </span>
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <html><head></head><body><p><strong>Message Queue</strong> 傳遞的是訊息，<br>但訊息在 RabbitMQ 的架構下是什麼？</p>
+<span id="more"></span>
+
+<h2 id="訊息是什麼？"><a href="#訊息是什麼？" class="headerlink" title="訊息是什麼？"></a>訊息是什麼？</h2><ul>
+<li>傳統定義上的訊息像是電子郵件、即時通訊等，可能是一般對<strong>訊息</strong>的認知，不過在 AMQP 的訊息有著一些特性</li>
+<li>AMQP <strong>像</strong>電子郵件 一樣可以設 tag</li>
+<li>AMQP <strong>不像</strong> 電子郵件的部份是其 內容是可以是任何結構，甚至可以放 binary 型態的資料</li>
+</ul>
+<h3 id="生產者與消費者"><a href="#生產者與消費者" class="headerlink" title="生產者與消費者"></a>生產者與消費者</h3><ul>
+<li>如同<a target="_blank" rel="noopener" href="https://dreamfulfil.github.io/2023/02/01/%E3%80%90%E6%B7%B1%E5%85%A5%E6%B7%BA%E5%87%BA-RabbitMQ-1-%E3%80%91-RabbitMQ-%E6%98%AF%E4%BB%80%E9%BA%BC%EF%BC%9F/">此篇</a>提到的，訊息有三個端點，生產者、消費者、Broker</li>
+<li>RabbitMQ 就如同是網路架構下的 router，而使用 RabbitMQ 的時候首先要決定的就是你是生產者或是消費者</li>
+<li>在發送訊息的時候有幾個要素:<ul>
+<li><strong>payload</strong><ul>
+<li>就是訊息的內容</li>
+<li>不分格式，不過實際上可以看對應語言的 client library 而定</li>
+<li>以 Java 的 amqp-client 來說，payload 是一個 byte[]</li>
+</ul>
+</li>
+<li><strong>label</strong><ul>
+<li>exchange，算是收發室的概念(後面會詳述)</li>
+<li>routing key，就是 tag 的概念，依 tag 來對訊息分類</li>
+</ul>
+</li>
+<li><strong>fire-and-forget</strong><ul>
+<li>生產者在送出訊息後，就不用管了，因為訊息已經到了 RabbitMQ</li>
+<li>關於怎麼確認已經到 RabbitMQ 這件事後面會再提到，不過一般來說送出之後是不必同步等待的</li>
+<li>這個特性對比於 REST API 在發訊息的候是必須等到對方回應，基於 HTTP request/response 的概念不一樣</li>
+</ul>
+</li>
+<li><strong>one-directional</strong><ul>
+<li>訊息發送是單向的，不會有對方發過來的</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>在接收訊息的時候有幾個要素:<ul>
+<li><strong>subscription</strong><ul>
+<li>消費者會訂閱某個 Queue</li>
+<li>RabbitMQ 會收到訊息的時候發給所有的 subscriber</li>
+</ul>
+</li>
+<li><strong>payload</strong><ul>
+<li>如同生產者送出的訊息一般，消費者最在乎的就是訊息本身</li>
+<li>通常雙方會約定一個結果的長相再轉換(e.g. 從 byte[] 透過 ObjectMapper 轉換成物件)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>雙方都不知道誰負責發或收，因此可以完全解耦收與發的雙方</li>
+</ul>
+<h3 id="Channel"><a href="#Channel" class="headerlink" title="Channel"></a>Channel</h3><ul>
+<li><strong>訊息</strong>是透過 <strong>Channel</strong> 送出的，但 Channel 是什麼？</li>
+<li>考慮到如果每個訊息都要開關一個 TCP Connection<ul>
+<li>TCP Socket 數量有限</li>
+<li>頻繁開關很貴，效能問題</li>
+</ul>
+</li>
+<li>因此 RabbitMQ 是:<ul>
+<li>基於<strong>一</strong>個 TCP Connection 底下</li>
+<li>建立<strong>多</strong>個 <strong>AMQP</strong> Channel</li>
+<li>每一個 Channel 就是一個獨立的 Thread，多個 Thread 共享 TCP Connection</li>
+</ul>
+</li>
+<li>意境上可以想像成吸管裡插了很多牙籤，吸管就是 TCP Connection，Channel 就是牙籤</li>
+</ul>
+<h3 id="AMQP-三要素"><a href="#AMQP-三要素" class="headerlink" title="AMQP 三要素"></a>AMQP 三要素</h3><ul>
+<li>如同<a target="_blank" rel="noopener" href="https://dreamfulfil.github.io/2023/02/01/%E3%80%90%E6%B7%B1%E5%85%A5%E6%B7%BA%E5%87%BA-RabbitMQ-1-%E3%80%91-RabbitMQ-%E6%98%AF%E4%BB%80%E9%BA%BC%EF%BC%9F/">此篇</a>提到的，RabbitMQ 遵循的是 AMQP 這個<strong>通訊協定</strong></li>
+<li>AMQP 的三個要素有 Queue, Exchange, Binding</li>
+<li>此篇會先以 Queue 為主</li>
+</ul>
+<h3 id="Queue"><a href="#Queue" class="headerlink" title="Queue"></a>Queue</h3><h4 id="建立-Queue"><a href="#建立-Queue" class="headerlink" title="建立 Queue"></a>建立 Queue</h4><ul>
+<li>Queue 需要先建立才能監聽，可透過 queue.declare 建立<ul>
+<li>Java 則是透過 Channel 的 <strong>queueDeclare</strong> 這個方法處理，其下有多種 overload</li>
+<li>我自己最常用的有 5 個參數如下:<ul>
+<li>queueName: 顧名思議就是 Queue 的名稱</li>
+<li>durable: 也就是這個 Queue 是不是重開 RabbitMQ 就不見了(後續會再詳談)</li>
+<li>exclusive: 是不是限定某一個 consumer</li>
+<li>autoDelete: 在最後一個消費者取消註冊的時候自動移除</li>
+<li>arguments: 其它的參數(種類太多有機會提到會說)</li>
+</ul>
+</li>
+<li>以前一筆 Hello World 的部份片段為例:  <figure class="highlight java hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">channel.queueDeclare(<span class="hljs-string">"DEMO_QUEUE"</span>, <span class="hljs-literal">false</span>, <span class="hljs-literal">false</span>, <span class="hljs-literal">false</span>, <span class="hljs-literal">null</span>);</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>queue 的名稱就是 <strong>DEMO_QUEUE</strong></li>
+<li>durable 為 false，代表 RMQ 重開的這個 Queue 就消失了</li>
+<li>exclusive 為 false，代表任何消費者都可以註冊</li>
+<li>autoDelete 為 false，代表最後一個消費者取消註冊依然會保留</li>
+<li>arguments 為 null 代表沒特別設定什麼其它的參數</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>建立 Queue 的時候也可以不指定名稱，會自動建立一組隨機的命名(e.g. <strong>amq.gen-kkcRbifmFzl4cVI6FLA4fQ==</strong>)</li>
+</ul>
+<h4 id="建立-Queue-Q-amp-A"><a href="#建立-Queue-Q-amp-A" class="headerlink" title="建立 Queue Q&amp;A"></a>建立 Queue Q&amp;A</h4><ul>
+<li>是否可以用同個名字 queue.declare？<ul>
+<li>一般來說是沒問題的，因為如果同一個命名的 Queue 已經存在，就不會特別再建一次</li>
+<li>此外，也可以透過 Channe.queueDeclarePassive 確認是否存在<br>  <img src="https://i.imgur.com/SRiiWCj.png"><ul>
+<li>如上圖，Queue 不存在就會拋出 Exception</li>
+<li>此時 Channel 就會自動被關閉</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>誰應該負責建立 Queue，生產者或消費者？<ul>
+<li>這取決於訊息本身是否可被遺漏<ul>
+<li>當生產者發送訊息，但沒有任何 Queue 負責接收的話，訊息就會直接像丟進黑洞一樣被吃掉</li>
+<li>消費者則是一定要有 Queue 才能註冊</li>
+</ul>
+</li>
+<li>結論就是如果訊息不能丟失，雙方都要建立，否則就是消費者自己建立就好了</li>
+</ul>
+</li>
+</ul>
+<h4 id="Queue-的運作"><a href="#Queue-的運作" class="headerlink" title="Queue 的運作"></a>Queue 的運作</h4><ul>
+<li>當同時有多個消費者註冊到同一個 Queue 時，訊息的發送是採 Round Robin(輪流) 的機制，讓大家都可以公平的被分到訊息，因此可以視為 Load balance 的一種</li>
+<li>消費者如何註冊？<ul>
+<li><strong>basic.consume</strong><ul>
+<li>在 Java 就是 <strong>Channel.basicConsume</strong></li>
+<li>消費的時候可以選擇 <strong>autoAck</strong> 或是手動 ack，RabbitMQ 在收到 <strong>ack</strong> 的通知後就會將訊息從 Queue 上移除</li>
+<li>發出 ack 之後，消費者會接著繼續處理下一訊息</li>
+<li>p.s. ack 是 <strong>acknowledgement</strong> 的縮寫，表示「老子收到訊息了」</li>
+</ul>
+</li>
+<li><strong>basic.get</strong><ul>
+<li>如果不想一直處理訊息只要拿出單筆訊息，可以透過這個方法</li>
+<li>每呼叫一次才會再取下一筆訊息</li>
+<li>while(true) 搭配 basic.get，效能會比 basic.consume 差非常多</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>在 Queue 中沒有任何訊息的時候，消費者就是一直等待</li>
+<li>如果消費者收到訊息後因為某種原因斷線了:<ul>
+<li>訊息會是處在 unacked 的狀態</li>
+<li>此時 RabbitMQ 會將訊息再重新發回 Queue，交由其它的消費者處理，或是等斷線的消費者再上線</li>
+</ul>
+</li>
+<li>如果消費者收到訊息忘記 ack，那就會卡死，不會再收到新訊息</li>
+<li>當收到的訊息有處理上有錯誤可以選擇:<ul>
+<li>basic.reject，直接拒絕訊息<ul>
+<li>requeue 為 true，會再放回 queue</li>
+<li>requeue 為 false(RMQ &gt; 2.0.0)，可以透過 dead letter 的機制處理</li>
+</ul>
+</li>
+<li>不管，就是 ack，那訊息就會直接被丟掉<ul>
+<li>此時可以在 ack 前先想辦法再釋出一個訊息告知失敗</li>
+<li>這個方法在很舊的 RabbitMQ 是適用的</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="小結"><a href="#小結" class="headerlink" title="小結"></a>小結</h3><ul>
+<li>三個節點: 生產者、消費者、Broker</li>
+<li>訊息三個要素: Queue, Exchange, Binding</li>
+<li>消費前要先有 queue(basic.declare)</li>
+<li>消費可以多筆或單筆(basic.consume vs. basic.get)</li>
+<li>消費必須 ack 或是 reject 訊息</li>
+</ul>
+</body></html>
+    
+    </div>
+    
+    <div class="columns is-variable is-1 is-multiline is-mobile">
+    
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/RabbitMQ/">#RabbitMQ</a></span>
+    
+    </div>
+    
+    
+    <div class="columns is-mobile is-multiline article-nav">
+        <span class="column is-12-mobile is-half-desktop is-hidden-mobile article-nav-prev">
+            
+        </span>
+        <span class="column is-12-mobile is-half-desktop  article-nav-next">
+            
+            <a href="/2023/02/04/%E3%80%90%E6%B7%B1%E5%85%A5%E6%B7%BA%E5%87%BA-RabbitMQ-2-%E3%80%91-Hello-World/">【深入淺出 RabbitMQ(2)】- Hello World</a>
+            
+        </span>
+    </div>
+    
+</article>
+
+
+
+
+<div class="comments">
+    <h3 class="title is-4">Comments</h3>
+    
+<script>
+    var disqus_config = function () {
+        this.page.url = 'http://example.com/2023/02/07/%E3%80%90%E6%B7%B1%E5%85%A5%E6%B7%BA%E5%87%BA-RabbitMQ-3-%E3%80%91-%E8%A8%8A%E6%81%AF%E7%AF%87-1/';
+        this.page.identifier = '2023/02/07/【深入淺出-RabbitMQ-3-】-訊息篇-1/';
+        
+        this.language = 'en';
+        
+    };
+    (function() {
+        var d = document, s = d.createElement('script');  
+        s.src = '//' + 'gc-garbage-collector' + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+
+<div id="disqus_thread">
+    
+    <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</div>
+
+    </div>
+</section>
+    <footer class="footer">
+    <div class="container">
+        <div class="columns content">
+            <div class="column is-narrow has-text-centered">
+                &copy; 2023 GC&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> & <a
+                        target="_blank" rel="noopener" href="http://github.com/ppoffice/hexo-theme-minos">Minos</a>
+            </div>
+            <div class="column is-hidden-mobile"></div>
+
+            
+            <div class="column is-narrow">
+                <div class="columns is-mobile is-multiline is-centered">
+                
+                    
+                <a class="column is-narrow has-text-black" title="GitHub" target="_blank" rel="noopener" href="https://github.com/DreamFulFil">
+                    
+                    GitHub
+                    
+                </a>
+                
+                </div>
+            </div>
+            
+            
+        </div>
+    </div>
+</footer>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+
+<!-- test if the browser is outdated -->
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" target="_blank" rel="noopener" href="http://outdatedbrowser.com/">Update my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // plugin function, place inside DOM ready function
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        })
+    });
+</script>
+
+<script>
+    window.FontAwesomeConfig = {
+        searchPseudoElements: true
+    }
+    moment.locale("en-AU");
+</script>
+
+
+    
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        "HTML-CSS": {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+</script>
+
+    
+    
+    
+    
+<script src="//cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.8/js/lightgallery-all.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/justifiedGallery/3.6.5/js/jquery.justifiedGallery.min.js"></script>
+<script>
+    (function ($) {
+        $(document).ready(function () {
+            if (typeof($.fn.lightGallery) === 'function') {
+                $('.article.gallery').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof($.fn.justifiedGallery) === 'function') {
+                $('.justified-gallery').justifiedGallery();
+            }
+        });
+    })(jQuery);
+</script>
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <style>
+        .hljs {
+            position: relative;
+        }
+
+        .hljs .clipboard-btn {
+            float: right;
+            color: #9a9a9a;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hljs .clipboard-btn:hover {
+          color: #8a8a8a;
+        }
+
+        .hljs > .clipboard-btn {
+            display: none;
+            position: absolute;
+            right: 4px;
+            top: 4px;
+        }
+
+        .hljs:hover > .clipboard-btn {
+            display: inline;
+        }
+
+        .hljs > figcaption > .clipboard-btn {
+            margin-right: 4px;
+        }
+    </style>
+    <script>
+      $(document).ready(function () {
+        $('figure.hljs').each(function(i, figure) {
+          var codeId = 'code-' + i;
+          var code = figure.querySelector('.code');
+          var copyButton = $('<button>Copy <i class="far fa-clipboard"></i></button>');
+          code.id = codeId;
+          copyButton.addClass('clipboard-btn');
+          copyButton.attr('data-clipboard-target-id', codeId);
+
+          var figcaption = figure.querySelector('figcaption');
+
+          if (figcaption) {
+            figcaption.append(copyButton[0]);
+          } else {
+            figure.prepend(copyButton[0]);
+          }
+        })
+
+        var clipboard = new ClipboardJS('.clipboard-btn', {
+          target: function(trigger) {
+            return document.getElementById(trigger.getAttribute('data-clipboard-target-id'));
+          }
+        });
+        clipboard.on('success', function(e) {
+          e.clearSelection();
+        })
+      })
+    </script>
+
+    
+    
+
+    
+
+
+
+<script src="/js/script.js"></script>
+
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-mask"></div>
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="Type something..." />
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: 'Posts',
+                PAGES: 'Pages',
+                CATEGORIES: 'Categories',
+                TAGS: 'Tags',
+                UNTITLED: '(Untitled)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+    
+</body>
+</html>
