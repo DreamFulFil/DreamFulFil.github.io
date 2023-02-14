@@ -2,7 +2,7 @@
 <html class="has-navbar-fixed-top">
 <head>
     <meta charset="utf-8">
-<title>【深入淺出 RabbitMQ(4)】- 訊息篇(Part II) - GC&#39;s Garbage Collector</title>
+<title>【Effective Java 重點摘要】- Item - GC&#39;s Garbage Collector</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
@@ -106,13 +106,13 @@
     <article class="article content gallery" itemscope itemprop="blogPost">
     <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
         
-            【深入淺出 RabbitMQ(4)】- 訊息篇(Part II)
+            【Effective Java 重點摘要】- Item
         
     </h1>
     <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
         <span class="column is-narrow">
             
-                <time datetime="2023-02-10T00:12:09.000Z" itemprop="datePublished">Feb 10 2023</time>
+                <time datetime="2023-02-14T00:12:22.000Z" itemprop="datePublished">Feb 14 2023</time>
             
         </span>
         
@@ -120,126 +120,106 @@
         <span class="column is-narrow">
             
             
-            9 minutes read (About 1297 words)
+            8 minutes read (About 1192 words)
         </span>
         
     </div>
     <div class="article-entry is-size-6-mobile" itemprop="articleBody">
     
-        <html><head></head><body><p>光有消費者？那可不夠，消費者是來消費的啊<br>生產者又是如何將訊息推送至 RabbitMQ 的呢？</p>
+        <html><head></head><body><h3 id="可考慮優先使用靜態工廠"><a href="#可考慮優先使用靜態工廠" class="headerlink" title="可考慮優先使用靜態工廠"></a>可考慮優先使用靜態工廠</h3><p>傳統上在建立物件時都是透過 <strong>new</strong><br>接著類別定義的建構子會被呼叫並建立實例<br>不過也可以透過靜態工廠達到同樣的效果，為什麼呢？</p>
 <span id="more"></span>
 
-<h3 id="Exchange"><a href="#Exchange" class="headerlink" title="Exchange"></a>Exchange</h3><h4 id="建立-Exchange"><a href="#建立-Exchange" class="headerlink" title="建立 Exchange"></a>建立 Exchange</h4><ul>
-<li>生產者發送的訊息其實是先<strong>直達</strong> Exchange，因此要先建立之</li>
-<li>Exchange 的建立是透過 exchange.declare 這個方法<ul>
-<li>在 Java client 則是透過 Channel.queueDeclare，常用的 5 參數 overload 如下:<ul>
-<li><strong>exchangeName</strong>: Exchange 的名稱</li>
-<li><strong>type</strong>: DIRECT/FANOUT/TOPIC(後續詳談)</li>
-<li><strong>durable</strong>: 也就是這個 Exchange 是不是重開 RabbitMQ 就不見了(後續會再詳談)</li>
-<li><strong>autoDelete</strong>: 沒被綁定的情況下就會自動刪除</li>
-<li><strong>arguments</strong>: 其它的參數(種類太多有機會提到會說) </li>
-</ul>
-</li>
-<li>不給名稱的 Exchange 可行？<ul>
-<li>不行，跟 queue 不一樣，沒名字的 exchange 是有特殊意義的</li>
-<li>RabbitMQ <strong>預設</strong>就有建立一個沒名字的 Exchange</li>
-<li>如果你嘗試建立名字為空字串的 exchange 就會發生以下的錯誤<br>  <img src="https://i.imgur.com/RE8B140.png"></li>
-</ul>
-</li>
-<li>為什麼不直接把訊息送到 Queue 就好？<ul>
-<li>前面提過 RabbitMQ 的訊息有所謂的標籤的概念</li>
-<li>Exchange 正是可以結合標籤的機制(後續詳談)</li>
-<li>以電子郵件的角度類推，你可以收到某人透過信箱位址發給你的信件，你也可以收到被發給某個<strong>群組</strong>(e.g. 會計科) 的信件</li>
-<li>這在某程度在生產者更不需要擔心訊息發給誰，甚至可以透過這個機制達一些複雜的轉介</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h4 id="Exchange-類型"><a href="#Exchange-類型" class="headerlink" title="Exchange 類型"></a>Exchange 類型</h4><ul>
-<li>Exchange 主要是搭配 <strong>Routing Key</strong>(標籤)，作為在發送訊息的時候需要一併提供的資訊</li>
-<li>此外，Exchange 與 Queue 是需要 Binding(綁定) 來設定關係的，而這中間的識別值就是 Routing Key(後續詳談)</li>
-<li>Exchange 主要有分三種類型:<ul>
-<li><strong>DIRECT</strong>: 依 routing key 的值<strong>一對一</strong>對應到 Queue<ul>
-<li>當發送訊息不指定 exchange name，就會是用預設的 exchange，其類型為 DIRECT</li>
-<li>如果預設的不夠，就自己建一個 exchange</li>
-<li>綁定時需要 queueName, exchangeName, routing key</li>
-</ul>
-</li>
-<li><strong>FANOUT</strong>: 不用 routing key，綁定的 Queue 全會收到訊息<ul>
-<li>綁定時只要 queueName, exchangeName 就可以，routing key 空白</li>
-<li>可以理解成廣播性質的息，而非特定單一</li>
-</ul>
-</li>
-<li><strong>TOPIC</strong>: Routing key 在命名上會有萬用字元(wildcard)<ul>
-<li>假設有一個 queue(msg-inbox-logs)，且有一個 exchange(logs-exchange)，並在 binding 的時候設定 routing key 為(*.msg-inbox)</li>
-<li>那麼發送訊息的時候，routing key 不論是 debug.msg-inbox、info.msg-inbox、error.msg-inbox，都會進到 msg-inbox-logs 這個 Queue</li>
-<li>同樣的情境如果透過 <strong>DIRECT</strong> exchange，我就需要透過三組 Routing Key 來綁定</li>
-<li>此外如果今天我不一定要送到 msg-inbox，那我可以再建立一個 binding，其規則為(info.*) </li>
-<li>如此一來生產者在送出 <strong>info</strong> 等級的訊息時，routing key 也可以設定為 info.line、info.whatsapp、info.skype … 等，且以上都是對<strong>同一 個</strong> exchange 發送訊息</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="重點整理"><a href="#重點整理" class="headerlink" title="重點整理"></a>重點整理</h3><ul>
-<li>這裡來稍微作個重點整理:<ul>
-<li>單純從供需雙方的角度來看:<ul>
-<li><strong>消費者</strong>會註冊到 Queue</li>
-<li><strong>生產者</strong>會對 Exchange 帶著 <strong>Routing Key</strong> 發送訊息</li>
-</ul>
-</li>
-<li>從 Broker 的角度來看:<ul>
-<li>必須有人建立 Queue、Exchange</li>
-<li>必須有人建立上述兩者間的關係(Binding)</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>以 Java 的 <strong>amqp-client</strong> 來看:<ul>
-<li>建立 Queue 就是 Channel.queueDeclare</li>
-<li>建立 Exchange 就是 Channel.exchangeDeclare</li>
-<li>建立 Binding 就是 Channel.queueBind</li>
-</ul>
-</li>
-</ul>
-<h3 id="我想活下去"><a href="#我想活下去" class="headerlink" title="我想活下去"></a>我想活下去</h3><ul>
-<li>前面在建立 queue/exchange 的時候都有提到一個概念 <strong>durable</strong>，它指的是 RabbitMQ 重開之後是否這個 entity 還依然存在</li>
-<li>如果要確保訊息是不管怎樣重開機都會存在的話，必須滿足三個條件:<ul>
-<li>在建立 Queue 時必須設定 durable 為 true</li>
-<li>在建立 Exchange 時也必須設定 durable 為 true</li>
-<li>在發送訊息的時候，必須設定 Delivery mode 為 <strong>2</strong>  <figure class="highlight java hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">AMQP.<span class="hljs-type">BasicProperties</span> <span class="hljs-variable">props</span> <span class="hljs-operator">=</span> </span><br><span class="line">    <span class="hljs-keyword">new</span> <span class="title class_">AMQP</span>.BasicProperties</span><br><span class="line">            .Builder()</span><br><span class="line">            .deliveryMode(<span class="hljs-number">2</span>) <span class="hljs-comment">// DURABLE MESSAGE</span></span><br><span class="line">            .build();</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="優點"><a href="#優點" class="headerlink" title="優點"></a>優點</h3><h5 id="因為它有名字，而建構子沒有"><a href="#因為它有名字，而建構子沒有" class="headerlink" title="因為它有名字，而建構子沒有"></a>因為它有名字，而建構子沒有</h5><ul>
+<li>可以看到如果我們如下初始化 BigInteger  <figure class="highlight java hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">new</span> <span class="title class_">BigInteger</span>(<span class="hljs-type">int</span>, <span class="hljs-type">int</span> ,Random)</span><br></pre></td></tr></tbody></table></figure>
 <ul>
-<li>這個 props 在 channel.basicPublish 時放到第三個參數</li>
-<li>記得，是<strong>發送</strong>訊息的時候，別的地方設定是沒用的</li>
+<li>上方程式可能是<strong>某一個</strong> BigInteger 的建構子的多載</li>
+<li>必須記得傳入的參數其<strong>順序、型態</strong>對應會產出什麼樣的物件</li>
+<li>如果改成  <figure class="highlight java hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">BigInteger.probablePrime() </span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>就能很明確的知道這個方法會回傳的是一個<strong>質數</strong>的 BigInteger。</li>
+<li>個人蠻傾向用這種寫法的，真的清楚很多，甚至是一些需要 <strong>clone</strong> 的情境也蠻適用的</li>
 </ul>
 </li>
 </ul>
 </li>
-<li>無差別 durable 為 true 可以嗎？<ul>
-<li>不太好，durable 代表 RabbitMQ 會將資訊記錄在硬碟磁區，相較於存在記憶體中會有效能上的差異</li>
-<li>因此，最好是對訊息做個區分:<ul>
-<li>可以丟失的訊息: 像是廣告的推播之類的</li>
-<li>不能丟失的訊息: 像是要刷多少金額</li>
-</ul>
-</li>
-<li>除了分類之外，不能丟失的訊息也建議在發送前也在 client 端備份，以免 RabbitMQ 本身出了什麼差錯<ul>
-<li>這就會讓整個訊息機制變得更複雜，但為了避免 Single Point of Failure，有時是必須的</li>
-<li>可以考慮 REDIS 或甚至是 RDMBS 連處理備份</li>
+<li>傳統物件導向的教科書都會透過 Constructor Overloading 應付不同情況的初始化<ul>
+<li>但靜態工廠方法也許會更好找到要的初始化方式</li>
+<li>可以定義 <strong>private</strong> constructor 搭配</li>
 </ul>
 </li>
 </ul>
+<h4 id="不需總是產出實體"><a href="#不需總是產出實體" class="headerlink" title="不需總是產出實體"></a>不需總是產出實體</h4><ul>
+<li>如下方的程式片段:  <figure class="highlight java hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Boolean.valueOf(<span class="hljs-type">boolean</span>);</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>它從來<strong>不會</strong>產生新的物件，而是直接回傳在這個類別第一次被初始化時，就已有建立的兩個成員 <strong>TRUE</strong> 與 <strong>FALSE</strong><ul>
+<li>這有點類似 GoF 中定義的 <a target="_blank" rel="noopener" href="https://refactoring.guru/design-patterns/flyweight/java/example"><strong>Flyweight Pattern</strong></a>，利用共用 Cache 的方式，在初始化<strong>大量物件</strong>時降低記憶體的使用量</li>
+<li>詳細的原始碼可以直接看 JDK 的 <strong>Boolean</strong> 這個類別的實作(巨人的肩膀)</li>
+</ul>
 </li>
-<li>如果發送訊息到 Exchange 前網路就斷了怎辦？<ul>
-<li>可以透過 publisher confirms 來達到訊息送達的確保</li>
-<li>古早時期也可以透過 Transaction 來達成，不過有點複雜，而且對效能相當之傷</li>
+<li>此外，靜態工廠方法也可用來產 uninstantiatable object 或 singleton，因為它能透過私有化的建構子確保及控制被初始化的物件的數量<ul>
+<li>這樣的類別可稱作是 <strong>instance-controlled</strong></li>
+<li>產出來的物件其 <strong>equals</strong> 實作要特別留意</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="可回傳方法宣告型態的任何子類別"><a href="#可回傳方法宣告型態的任何子類別" class="headerlink" title="可回傳方法宣告型態的任何子類別"></a>可回傳方法宣告型態的任何子類別</h4><ul>
+<li>如此一來，可以回傳<strong>非公開</strong>的實作類別，例如:在私有內部類別實作某個介面，並以靜態工廠方法回傳 </li>
+<li>Java 8之前是<strong>不能</strong>在 interface 定義靜態方法的，都是透過 <strong>Types</strong> 的型式宣告一個類別定義其中，且該類別是無法被初始化的。e.g. java.util.Collections, java.nio.Files,…等。</li>
+<li><strong>Client</strong> 端面對的是介面，是個好的寫作習慣</li>
+</ul>
+<h4 id="可以依傳入的參數不同回傳不同的子類別"><a href="#可以依傳入的參數不同回傳不同的子類別" class="headerlink" title="可以依傳入的參數不同回傳不同的子類別"></a>可以依傳入的參數不同回傳不同的子類別</h4><ul>
+<li>例如: <strong>EnumSet</strong>，會回傳 <strong>RegularEnumSet</strong> 或 <strong>JumboEnumSet</strong></li>
+<li>這兩個子類取的實作都是被隱藏起來的，因此未來若需要再擴充回傳其他子類別也不會影響到原本已經使用 <strong>EnumSet</strong> 任何程式<ul>
+<li>這在 EnumSet 原始碼中 <strong>noneOf</strong> 這方法可以看到</li>
+<li>依目前 enum 的數量決定要回傳哪個實作</li>
+</ul>
+</li>
+</ul>
+<h4 id="靜態方法回傳的實際類別在定義方法時不一定已經存在"><a href="#靜態方法回傳的實際類別在定義方法時不一定已經存在" class="headerlink" title="靜態方法回傳的實際類別在定義方法時不一定已經存在"></a>靜態方法回傳的實際類別在定義方法時不一定已經存在</h4><ul>
+<li>如同 <strong>JDBC</strong> 一般的 <strong>Service Provider Frameworks</strong>，<br> 其組成包含以下幾個要素:<ul>
+<li>Service Interface -&gt; <strong>Connection</strong></li>
+<li>Provider registration API -&gt; <strong>DriverManager.registerDriver</strong></li>
+<li>Service Access API -&gt; <strong>DriverManager.getConnection</strong></li>
+<li>Service Provider Interface -&gt; <strong>Driver</strong></li>
+<li>其中:<ul>
+<li>Service Interface 就是定義要實作的介面(抽象部份)</li>
+<li>Provider registration 就是將實作介面的類別組合在抽象功能上。</li>
+<li>Service Access API 就是選擇要回傳哪個實作類別的靜態方法。</li>
+<li>這就是典型的 **<a target="_blank" rel="noopener" href="https://sourcemaking.com/design_patterns/bridge">Bridge Pattern</a>**。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="缺點"><a href="#缺點" class="headerlink" title="缺點"></a>缺點</h3><h4 id="沒有public或protected的建構子是無法被繼承的"><a href="#沒有public或protected的建構子是無法被繼承的" class="headerlink" title="沒有public或protected的建構子是無法被繼承的"></a>沒有public或protected的建構子是無法被繼承的</h4><ul>
+<li>因為繼承的子類別看不到父類別的建構子，編譯上就不會通過<ul>
+<li>舉例來說 java.util.Collections 就無法再透過繼承加新功能</li>
+</ul>
+</li>
+<li>不過其實這是因禍得福，因為 OOP 有這麼一條原則，<strong>Favor composition over inheritance</strong><ul>
+<li>過深的繼承樹會使得程式變得極其複雜</li>
+<li>用組合在寫單原測試的時候會比較好抽換 Mock</li>
+</ul>
+</li>
+</ul>
+<h4 id="有點難找"><a href="#有點難找" class="headerlink" title="有點難找"></a>有點難找</h4><ul>
+<li>因為它有太多種可能的型式，不像建構子在API就只有唯一的地方</li>
+<li>所以會有點難分辨究竟要怎樣才能產生實體，不過這個問題可以透過遵循一些<strong>命名原則</strong>來解決，例:<ul>
+<li><strong>from</strong>: 型態轉換，e.g. Date.from(instant)</li>
+<li><strong>of</strong>: 建立集合時用, e.g. EnumSet.of(JACK,QUEEN,KING)</li>
+<li><strong>getInstance</strong>: 確保每次拿到的都是<strong>同一個</strong>實例</li>
+<li><strong>newInstance</strong>: 確保每次拿到的都是<strong>新的</strong>實例</li>
+<li><strong>getType</strong>: 跟 getInstance 相似，但用在方法被定義在不同的類別時(e.g. Files.getFileStore)</li>
+<li><strong>newType</strong>: 同上，與 newInstance 相似</li>
+<li><strong>type</strong>: 簡化版的 getType/newType(e.g. Collections.unmodifiableList)</li>
 </ul>
 </li>
 </ul>
 <h3 id="小結"><a href="#小結" class="headerlink" title="小結"></a>小結</h3><ul>
-<li>Exchange 有三種類型: DIRECT/FANOUT/TOPIC</li>
-<li>Exchange 可搭配 Routing Key</li>
-<li>訊息本身是可以挺過重開機的</li>
+<li>建構子與靜態工廠方法各有千秋</li>
+<li>若情況允許可以多以後者為主</li>
 </ul>
 </body></html>
     
@@ -247,20 +227,18 @@
     
     <div class="columns is-variable is-1 is-multiline is-mobile">
     
-        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/RabbitMQ/">#RabbitMQ</a></span>
+        <span class="column is-narrow"><a class="tag is-light article-tag" href="/tags/Effective-Java/">#Effective Java</a></span>
     
     </div>
     
     
     <div class="columns is-mobile is-multiline article-nav">
-        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
-            
-            <a href="/2023/02/14/%E3%80%90Effective-Java-%E9%87%8D%E9%BB%9E%E6%91%98%E8%A6%81%E3%80%91-Item-1/">【Effective Java 重點摘要】- Item</a>
+        <span class="column is-12-mobile is-half-desktop is-hidden-mobile article-nav-prev">
             
         </span>
         <span class="column is-12-mobile is-half-desktop  article-nav-next">
             
-            <a href="/2023/02/07/%E3%80%90%E6%B7%B1%E5%85%A5%E6%B7%BA%E5%87%BA-RabbitMQ-3-%E3%80%91-%E8%A8%8A%E6%81%AF%E7%AF%87-1/">【深入淺出 RabbitMQ(3)】- 訊息篇(Part I)</a>
+            <a href="/2023/02/10/%E3%80%90%E6%B7%B1%E5%85%A5%E6%B7%BA%E5%87%BA-RabbitMQ-4-%E3%80%91-%E8%A8%8A%E6%81%AF%E7%AF%87-2/">【深入淺出 RabbitMQ(4)】- 訊息篇(Part II)</a>
             
         </span>
     </div>
@@ -275,8 +253,8 @@
     
 <script>
     var disqus_config = function () {
-        this.page.url = 'http://example.com/2023/02/10/%E3%80%90%E6%B7%B1%E5%85%A5%E6%B7%BA%E5%87%BA-RabbitMQ-4-%E3%80%91-%E8%A8%8A%E6%81%AF%E7%AF%87-2/';
-        this.page.identifier = '2023/02/10/【深入淺出-RabbitMQ-4-】-訊息篇-2/';
+        this.page.url = 'http://example.com/2023/02/14/%E3%80%90Effective-Java-%E9%87%8D%E9%BB%9E%E6%91%98%E8%A6%81%E3%80%91-Item-1/';
+        this.page.identifier = '2023/02/14/【Effective-Java-重點摘要】-Item-1/';
         
         this.language = 'en';
         
